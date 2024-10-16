@@ -6,7 +6,7 @@ setup(
     version='0.0.1', 
     packages=find_packages(),
     description='blueberry-o1',
-    install_requires = ['torch', 'numpy', 'loguru'],
+    install_requires = ['torch', 'numpy', 'loguru', 'matplotlib'],
     scripts=[],
     python_requires = '>=3',
     include_package_data=True,
