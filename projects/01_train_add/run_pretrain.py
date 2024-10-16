@@ -4,7 +4,7 @@ from blueberry.utils.seed import seed_all
 from blueberry.trainer.naive import PreTrainer
 from blueberry.data.pretrain import MemDataset
 from main.tokenizer import Tokenizer
-import settings
+from main import settings
 
 seed_all(36)
 # ** hyper parameters **

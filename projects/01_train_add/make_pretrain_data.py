@@ -1,5 +1,5 @@
 from pathlib import Path
-import settings
+from main import settings
 
 
 def make_data():
@@ -21,6 +21,7 @@ def main():
     with open(filename, 'w') as f:
         text = settings.pretrain_text_sep.join(make_data())
         f.write(text)
+    print('Done!')
         
 if __name__ == '__main__':
     main()

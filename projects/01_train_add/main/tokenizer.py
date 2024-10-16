@@ -1,6 +1,5 @@
 import re
 
-
 class Tokenizer:
     def __init__(self, 
                  begin_text_token='<|text/|>',
