@@ -4,11 +4,10 @@ import settings
 
 
 tokenizer = Tokenizer()
-
 gpt = GPT.load(settings.final_model_file)
 
 # ** generate **
-start_tokens = tokenizer.encode("3", bos=True, eos=False)
+start_tokens = tokenizer.encode("12 =", bos=True, eos=False)
 print(f'{start_tokens=}')
 
 max_generate_len = 20
@@ -42,8 +41,10 @@ def test_top_p(num_test, temperature, top_p):
         print(f'\t{decoded_sequence}')
 
 
-test_temperature(num_test=10, temperature=0.9)
 test_temperature(num_test=10, temperature=0.1)
+test_temperature(num_test=10, temperature=0.9)
+test_temperature(num_test=10, temperature=2.0)
+test_temperature(num_test=10, temperature=5.0)
 
 test_top_k(num_test=10, temperature=0.9, top_k=2)
 test_top_k(num_test=10, temperature=0.9, top_k=8)

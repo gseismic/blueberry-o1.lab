@@ -11,14 +11,23 @@ seed_all(36)
 def get_pretrain_data():
     with open(settings.pretrain_data_file) as f:
         text = f.read()
-        lines = text.strip().split(settings.text_sep)
+        lines = text.strip().split(settings.pretrain_text_sep)
     return lines
 
+# ** hyper parameters **
+batch_size = 10
+max_epochs = 10_000
+target_loss_ratio = 0.001
+target_loss = 0.01
+
+# ** log info **
+verbose_freq = 10
+
+# ** pretrain-data **
 data = get_pretrain_data()
 print(data)
 
 tokenizer = Tokenizer()
-batch_size = 10
 dataset = MemDataset(data, tokenizer=tokenizer)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -29,9 +38,9 @@ max_seq_len = gpt_config['seq_len']
 
 # ** train **
 trainer = PreTrainer('demo', gpt, data_loader=dataloader, device='cuda')
-trainer.train(max_epochs=100,
-              target_loss_ratio=0.01,
-              target_loss=0.01,
+trainer.train(max_epochs=max_epochs,
+              target_loss_ratio=target_loss_ratio,
+              target_loss=target_loss,
               final_model_file=settings.final_model_file,
-              verbose_freq=10)
+              verbose_freq=verbose_freq)
 

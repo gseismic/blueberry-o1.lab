@@ -20,7 +20,7 @@ def main():
     filename.parent.mkdir(exist_ok=True)
     print('Generate pretrain data ...')
     with open(filename, 'w') as f:
-        text = settings.text_sep.join(make_data())
+        text = settings.pretrain_text_sep.join(make_data())
         f.write(text)
         
 if __name__ == '__main__':
