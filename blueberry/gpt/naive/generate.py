@@ -47,7 +47,7 @@ def generate_sequence(model, start_tokens, max_gen_len, vocab_size,
         generated_sequence = generate_sequence(gpt, start_tokens, max_gen_len, vocab_size, device='cpu', top_p=0.9)
         print("Generated sequence with top-p sampling:", generated_sequence)
     """
-    assert device in ['cpu', 'cuda']
+    assert isinstance(device, torch.device) or device in ['cpu', 'cuda']
     assert not (top_k is True and top_p is True)
     assert top_p is None or 0 < top_p < 1
     assert top_k is None or 0 < top_k <= max_gen_len

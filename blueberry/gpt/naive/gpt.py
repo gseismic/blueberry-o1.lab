@@ -96,9 +96,10 @@ class GPT(nn.Module):
         output = self.fc_out(x)
         return output
 
-    def generate(self, start_tokens, max_len, device='cuda', temperature=1.0,
+    def generate(self, start_tokens, max_len, temperature=1.0,
                  top_k=None, top_p=None, callback=None):
         from .generate import generate_sequence
+        device = next(self.parameters()).device
         samples = generate_sequence(self, start_tokens, max_len, self.vocab_size, 
                                     max_seq_len=self.seq_len,
                                     device=device,
@@ -106,3 +107,4 @@ class GPT(nn.Module):
                                     top_k=top_k, top_p=top_p,
                                     callback=callback)
         return samples
+

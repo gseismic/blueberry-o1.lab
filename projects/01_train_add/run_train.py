@@ -36,27 +36,31 @@ gpt_config = {
 gpt = GPT.from_config(gpt_config)
 max_seq_len = gpt_config['seq_len']
 
+# ** train **
 trainer = PreTrainer(gpt, data_loader=dataloader, device='cuda')
-trainer.train(max_epochs=30,
+trainer.train(max_epochs=300,
               target_loss_ratio=0.01,
               target_loss=0.01,
               verbose_freq=10)
 
-start_tokens = tokenizer.encode("3 + 5", bos=False, eos=False)[0]
-max_generate_len = 20
+# ** generate **
+start_tokens = tokenizer.encode("3", bos=True, eos=False)
 print(f'{start_tokens=}')
 
+max_generate_len = 20
+
 # 温度调整生成
-generated_sequence = gpt.generate(start_tokens, max_generate_len, device='cpu', temperature=0.7)
+generated_sequence = gpt.generate(start_tokens, max_generate_len, temperature=0.7)
 decoded_sequence = tokenizer.decode(generated_sequence)
 print("Generated sequence with **temperature**:", decoded_sequence)
 
 # Top-k 采样生成
-generated_sequence = gpt.generate(start_tokens, max_generate_len, device='cpu', temperature=0.7, top_k=3)
+generated_sequence = gpt.generate(start_tokens, max_generate_len, temperature=0.7, top_k=3)
 decoded_sequence = tokenizer.decode(generated_sequence)
 print("Generated sequence with **top-k** sampling:", decoded_sequence)
 
 # Top-p 采样生成
-generated_sequence = gpt.generate(start_tokens, max_generate_len, device='cpu', temperature=0.7, top_p=0.9)
+generated_sequence = gpt.generate(start_tokens, max_generate_len, temperature=0.7, top_p=0.9)
 decoded_sequence = tokenizer.decode(generated_sequence)
 print("Generated sequence with **top-p** sampling:", decoded_sequence)
+
