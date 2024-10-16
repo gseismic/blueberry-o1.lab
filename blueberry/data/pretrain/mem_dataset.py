@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import Dataset
 
 class MemDataset(Dataset):
-    def __init__(self, data, tokenizer, seq_len=20):
+    def __init__(self, data, tokenizer, seq_len):
         self.data = data
         self.tokenizer = tokenizer
         self.seq_len = seq_len
@@ -19,8 +19,13 @@ class MemDataset(Dataset):
         return input_seq, target_seq
 
 
-training_dataset = [
-    f'{i} x {j} = {i*j}'
-    for j in range(10)
-    for i in range(10)
-]
+    @classmethod 
+    def from_file(cls, filename, tokenizer, seq_len, pretrain_text_sep):
+        def get_data():
+            with open(filename) as f:
+                text = f.read()
+                lines = text.strip().split(pretrain_text_sep)
+            return lines
+        data = get_data()
+        dataset = cls(data, tokenizer=tokenizer, seq_len=seq_len)
+        return dataset

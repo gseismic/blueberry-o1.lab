@@ -127,7 +127,7 @@ if __name__ == "__main__":
         "newer newer low",
     ]
 
-    # 初始化 BPE，并训练
+    # 初始化 BPE，并训练    
     bpe = BPE(num_merges=10)
     bpe.fit(corpus)
 

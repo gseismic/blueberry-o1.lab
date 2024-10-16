@@ -1,4 +1,4 @@
-from ...config import torch, nn 
+from ....config import torch, nn 
 import math
 
 

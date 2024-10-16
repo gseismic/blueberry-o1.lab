@@ -1,4 +1,4 @@
-from ...config import nn, F
+from ....config import nn, F
 from .positional_encoding import PositionalEncoding
 from .encoder import TransformerEncoder
 from .decoder import TransformerDecoder

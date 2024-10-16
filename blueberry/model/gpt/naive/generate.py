@@ -1,4 +1,4 @@
-from ...config import torch, F
+from ....config import torch, F
 
 
 def generate_sequence(model, start_tokens, max_gen_len, vocab_size, 

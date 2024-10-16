@@ -1,4 +1,4 @@
-from ...config import nn, torch
+from ....config import nn, torch
 from ...transformer.naive.positional_encoding import PositionalEncoding
 from ...transformer.naive.positionwise_feed_forward import PositionwiseFeedForward
 from ...transformer.naive.multi_head_attention import MultiHeadAttention

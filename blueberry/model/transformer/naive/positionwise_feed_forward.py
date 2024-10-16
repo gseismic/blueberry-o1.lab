@@ -1,4 +1,4 @@
-from ...config import nn, F
+from ....config import nn, F
 
 
 class PositionwiseFeedForward(nn.Module):

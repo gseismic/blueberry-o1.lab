@@ -1,4 +1,4 @@
-from blueberry.gpt.naive import GPT
+from blueberry.model.gpt.naive import GPT
 from main.tokenizer import Tokenizer
 import settings
 
@@ -51,4 +51,3 @@ test_top_k(num_test=10, temperature=0.9, top_k=8)
 
 test_top_p(num_test=10, temperature=0.9, top_p=0.2)
 test_top_p(num_test=10, temperature=0.9, top_p=0.8)
-

@@ -1,4 +1,4 @@
-from ...config import nn
+from ....config import nn
 from .positionwise_feed_forward import PositionwiseFeedForward
 from .multi_head_attention import MultiHeadAttention
 

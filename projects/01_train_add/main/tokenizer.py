@@ -7,6 +7,7 @@ class Tokenizer:
                  end_text_token='<|/text|>',
                  padding_token='<|padding|>', 
                  unknown_token='<|unknown|>'):
+        # special-token: 不会被打印的token，类似于<shift><ctrl>
         self.padding_token = padding_token
         self.unknown_token = unknown_token
         self.begin_text_token = begin_text_token

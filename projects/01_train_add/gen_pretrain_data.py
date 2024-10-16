@@ -2,7 +2,6 @@ from pathlib import Path
 import settings
 
 
-
 def make_data():
     data = []
     for i in range(10):

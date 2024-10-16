@@ -1,4 +1,4 @@
-from ..config import torch
+from ....config import torch
 
 
 def pad_sequences(sequences, max_len, pad_index):

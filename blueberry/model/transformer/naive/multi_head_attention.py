@@ -1,4 +1,4 @@
-from ...config import torch, nn, F
+from ....config import torch, nn, F
 
 
 class MultiHeadAttention(nn.Module):

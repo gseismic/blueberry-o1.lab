@@ -16,3 +16,6 @@ gpt_config = {
     "dropout": 0.1
 }
 
+# pretrain_config = {
+    
+# }
