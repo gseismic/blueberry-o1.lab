@@ -1,15 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from pathlib import Path
 from .logger import user_logger
 
 class PreTrainer:
     
-    def __init__(self, model, data_loader=None, device='cuda', logger=None):
+    def __init__(self, name, model, data_loader=None, device='cuda', logger=None):
+        self.name = name
         self.model = model
         self.data_loader = data_loader
         self.logger = logger or user_logger
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(device if torch.cuda.is_available() else "cpu")
     
     def set_data_loader(self, data_loader):
         self.data_loader = data_loader
@@ -17,12 +19,16 @@ class PreTrainer:
     def train(self, max_epochs, 
               target_loss_ratio=None, 
               target_loss=None,
-              verbose_freq=10):
+              verbose_freq=10,
+              checkpoint_freq=None,
+              final_model_file='models/final_model.pth',
+              checkpoint_dir='models/checkpoint'):
         # 损失函数和优化器
         gpt = self.model.to(self.device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(gpt.parameters(), lr=0.0001)
         first_loss = None
+
 
         # 训练步骤
         gpt.train()
@@ -46,6 +52,12 @@ class PreTrainer:
                 optimizer.step()
 
                 epoch_loss += loss.item()
+
+            if checkpoint_freq is not None and (epoch+1) % checkpoint_freq == 0:
+                Path(checkpoint_dir).mkdir(exist_ok=True)
+                checkpoint_file = Path(checkpoint_dir) / f'{self.name}_{epoch}.pth'
+                self.model.save(checkpoint_file)
+                self.logger.info(f'Checkpoint model saved: {checkpoint_file}')
                 
             if first_loss is None:
                 first_loss = epoch_loss
@@ -59,3 +71,10 @@ class PreTrainer:
 
             if epoch == 0 or (epoch+1) % verbose_freq == 0:
                 self.logger.info(f'Epoch {epoch+1}, Loss: {epoch_loss/len(self.data_loader):.6f}')
+
+        if final_model_file is None:
+            import uuid
+            final_model_file = f'models/final_model_{self.name}_{str(uuid.uuid4())[-8:]}.pth'
+        Path(final_model_file).parent.mkdir(exist_ok=True)
+        self.model.save(final_model_file)
+        self.logger.info(f'Final model saved: {final_model_file}')

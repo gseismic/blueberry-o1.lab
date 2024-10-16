@@ -39,21 +39,35 @@ class GPTBlock(nn.Module):
 
 class GPT(nn.Module):
 
-    def __init__(self, num_layers, embed_dim, num_heads, ff_dim, vocab_size, seq_len, dropout=0.1):
+    def __init__(self, 
+                 num_layers=None, 
+                 embed_dim=None, 
+                 num_heads=None, ff_dim=None, 
+                 vocab_size=None, seq_len=None, dropout=0.1):
         super(GPT, self).__init__()
         self.num_layers = num_layers
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
+        self.num_heads = num_heads
         self.vocab_size = vocab_size
         self.seq_len = seq_len
         self.dropout = dropout
-        self.embedding = nn.Embedding(vocab_size, embed_dim)
-        self.positional_encoding = PositionalEncoding(embed_dim, seq_len)
+        self._initialized = False
+
+        self.initialize()
+
+    def initialize(self):
+        if self.num_layers is None:
+            return
+        self.embedding = nn.Embedding(self.vocab_size, self.embed_dim)
+        self.positional_encoding = PositionalEncoding(self.embed_dim, self.seq_len)
         self.blocks = nn.ModuleList([
-            GPTBlock(embed_dim, num_heads, ff_dim, dropout) for _ in range(num_layers)
+            GPTBlock(self.embed_dim, self.num_heads, self.ff_dim, self.dropout) 
+            for _ in range(self.num_layers)
         ])
-        self.layer_norm = nn.LayerNorm(embed_dim)
-        self.fc_out = nn.Linear(embed_dim, vocab_size)
+        self.layer_norm = nn.LayerNorm(self.embed_dim)
+        self.fc_out = nn.Linear(self.embed_dim, self.vocab_size)
+        self._initialized = True
 
     @classmethod
     def from_config(cls, gpt_config):
@@ -74,6 +88,8 @@ class GPT(nn.Module):
         # src: [batch_size, seq_len]
         # NOTE: 当前的x输入可能比self.seq_len小，并且是允许的
         # print(f'GPT: {x.shape=}')
+        # print(self.initialized)
+        assert self.initialized, 'Model not initialized'
         device = x.device
         batch_size = x.size(0)
         cur_seq_len = x.size(1)
@@ -96,6 +112,10 @@ class GPT(nn.Module):
         output = self.fc_out(x)
         return output
 
+    @property
+    def initialized(self):
+        return self._initialized
+
     def generate(self, start_tokens, max_len, temperature=1.0,
                  top_k=None, top_p=None, callback=None):
         from .generate import generate_sequence
@@ -108,3 +128,13 @@ class GPT(nn.Module):
                                     callback=callback)
         return samples
 
+    def save(self, path):
+        from pathlib import Path
+        Path(path).parent.mkdir(exist_ok=True)
+        torch.save(self, path)
+        # torch.save(self.state_dict(), path)
+
+    @classmethod
+    def load(cls, path):
+        gpt = torch.load(path)
+        return gpt

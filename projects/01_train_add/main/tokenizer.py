@@ -60,5 +60,20 @@ class Tokenizer:
             encoded_tokens.append(self.char_to_idx[self.end_text_token])
         return encoded_tokens
 
-    def decode(self, tokens):
-        return ''.join([self.idx_to_char[token] for token in tokens])
+    def decode(self, tokens, 
+               skip_bos=False, skip_eos=False,
+               skip_padding=False, skip_unknown=False, 
+               do_format=False):
+        def should_decode(token):
+            if (skip_bos or do_format) and token == self.begin_text_id:
+                return False
+            if (skip_eos or do_format) and token == self.end_text_id:
+                return False
+            if (skip_padding or do_format) and token == self.padding_id:
+                return False
+            if (skip_unknown or do_format) and token == self.unknown_id:
+                return False
+            return True
+        return ''.join([self.idx_to_char[token] 
+                        for token in tokens 
+                        if should_decode(token)])
