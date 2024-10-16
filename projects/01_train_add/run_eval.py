@@ -1,6 +1,6 @@
 from blueberry.model.gpt.naive import GPT
 from main.tokenizer import Tokenizer
-import settings
+from main import settings
 
 
 tokenizer = Tokenizer()
