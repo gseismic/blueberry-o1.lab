@@ -10,9 +10,9 @@ from main import settings
 seed_all(36)
 # ** hyper parameters **
 batch_size = 160 # 10
-max_epochs = 30_000
+max_epochs = 6_00
 target_loss_ratio = 0.001
-target_loss = 0.01
+target_loss = 0.001
 
 tokenizer = Tokenizer()
 gpt_config = settings.gpt_config | {'vocab_size': tokenizer.vocab_size}
@@ -25,8 +25,16 @@ data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 # gpt = GPT(num_layers, embed_dim, num_heads, ff_dim, vocab_size, dropout=dropout)
 gpt = GPT.from_config(gpt_config)
 
+param_count = gpt.count_parameters()
+print(f'parameter count: {param_count=}')
+
+# expected_count = gpt_config.num_layers*gpt**2
+# raise
+
 # ** train **
-trainer = PreTrainer(gpt, data_loader=data_loader, logger=user_logger)
+# device = 'cpu' # 22 sec
+device = 'cuda' # 2 sec
+trainer = PreTrainer(gpt, data_loader=data_loader, logger=user_logger, device=device)
 exit_info = trainer.train(max_epochs=max_epochs,
               target_loss_ratio=target_loss_ratio,
               target_loss=target_loss,

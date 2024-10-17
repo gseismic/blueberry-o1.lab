@@ -55,6 +55,9 @@ class GPT(nn.Module):
         self._initialized = False
 
         self.initialize()
+    
+    def count_parameters(self):
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
     def initialize(self):
         if self.num_layers is None:

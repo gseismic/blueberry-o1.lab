@@ -10,7 +10,7 @@ gpt = GPT.load(settings.final_model_file)
 start_tokens = tokenizer.encode("12 =", bos=True, eos=False)
 print(f'{start_tokens=}')
 
-max_generate_len = 20
+max_generate_len = 20 # settings.gpt_config['seq_len']
 
 # 温度调整生成
 def test_temperature(num_test, temperature):
