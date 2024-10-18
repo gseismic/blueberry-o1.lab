@@ -1,7 +1,7 @@
 # strawberry-o1.lab
 strawberry-o1: AGI from 0(zero) to 1(O1)
 
-## Thinks 
+## Thinks
 - 这是最重要的问题吗？
 - 为什么这样设计？
 - 真的有效吗，严格的数学逻辑是什么？
@@ -9,6 +9,11 @@ strawberry-o1: AGI from 0(zero) to 1(O1)
 ## Notes
 - 考虑对任意模型推理阶段加速
 
+## Reference
+- 
+
+## Data
+- [wiki](https://zh.wikipedia.org/wiki/%E6%BC%94%E7%BB%8E%E6%8E%A8%E7%90%86)
 
 ## Reference
 《从零实现强化学习、RLHF、AlphaZero》-1：基于价值的强化学习1-理论基础、q learning、sarsa、dqn

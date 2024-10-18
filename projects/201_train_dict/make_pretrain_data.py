@@ -1,20 +1,27 @@
+import glob
+import json
 from pathlib import Path
 from main import settings
 
 
-def make_data():
-    data = []
-    for i in range(10):
-        for j in range(10):
-            z = i + j
-            line1 = f'{z} = {i} + {j}'
-            line2 = f'{i}+{j}={z}'
-            data.append(line1)
-            data.append(line2)
+root_path = '/Users/mac/turing/llm_dataset/dictcn/hanyu'
+def read_file(filename):
+    with open(filename) as f:
+        data = json.load(f)
     return data
 
+def make_data():
+    filepaths = glob.glob(root_path+ '/*.json')
+    print(filepaths)
+    for path in filepaths:
+        print(path)
+        data = read_file(path)
+        print(data)
 
 def main():
+    make_data()
+    return
+
     filename = Path(settings.pretrain_data_file)
     filename.parent.mkdir(exist_ok=True)
     print('Generate pretrain data ...')

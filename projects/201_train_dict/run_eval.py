@@ -1,7 +1,16 @@
 from blueberry.model.gpt.naive import GPT
 from main.tokenizer import Tokenizer
-import settings
+from main import settings
 
+
+tokenizer = Tokenizer()
+gpt = GPT.load(settings.final_model_file)
+
+# ** generate **
+start_tokens = tokenizer.encode("12 =", bos=True, eos=False)
+print(f'{start_tokens=}')
+
+max_generate_len = 20 # settings.gpt_config['seq_len']
 
 # 温度调整生成
 def test_temperature(num_test, temperature):
@@ -31,15 +40,6 @@ def test_top_p(num_test, temperature, top_p):
         decoded_sequence = tokenizer.decode(generated_sequence, do_format=True)
         print(f'\t{decoded_sequence}')
 
-
-tokenizer = Tokenizer()
-gpt = GPT.load(settings.final_model_file)
-
-# ** generate **
-start_tokens = tokenizer.encode("12 =", bos=True, eos=False)
-print(f'{start_tokens=}')
-
-max_generate_len = 20 # settings.gpt_config['seq_len']
 
 test_temperature(num_test=10, temperature=0.1)
 test_temperature(num_test=10, temperature=0.9)

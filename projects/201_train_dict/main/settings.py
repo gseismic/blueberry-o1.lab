@@ -18,5 +18,13 @@ gpt_config = {
     "dropout": 0.1
 }
 
+pretrain_config = {
+    'seed': 36,
+    'batch_size' = 160 # 10
+max_epochs = 6_00
+target_loss_ratio = 0.001
+target_loss = 0.001
+}
+
 # pretrain_config = {
 # }
