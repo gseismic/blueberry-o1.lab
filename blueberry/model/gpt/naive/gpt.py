@@ -55,6 +55,14 @@ class GPT(nn.Module):
 
         self.initialize()
     
+    @property
+    def p_name(self):
+        return (
+            f'L{self.num_layers}E{self.embed_dim}'
+            f'F{self.ff_dim}H{self.num_heads}'
+            f'V{self.vocab_size}N{self.seq_len}P{self.dropout}'
+        )
+    
     def count_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
@@ -93,6 +101,7 @@ class GPT(nn.Module):
         device = x.device
         batch_size = x.size(0)
         cur_seq_len = x.size(1)
+
         assert 1 <= cur_seq_len <= self.seq_len
         # Apply causal mask (N, 1, seq_len, seq_len)
         # 因为要用到batch_size
@@ -135,3 +144,7 @@ class GPT(nn.Module):
     def load(cls, path):
         gpt = torch.load(path)
         return gpt
+
+    @classmethod
+    def from_pretrained(cls, path):
+        return cls.load(path)

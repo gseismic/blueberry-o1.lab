@@ -37,6 +37,7 @@ class PreTrainer:
     
     def train(self,
               max_epochs, 
+              lr=0.0001,
               target_loss_ratio=None,
               target_loss=None,
               verbose_freq=10,
@@ -47,8 +48,8 @@ class PreTrainer:
         # 损失函数和优化器
         gpt = self.model.to(self.device)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(gpt.parameters(), lr=0.0001)
-        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=int(max_epochs/30), gamma=0.9)
+        optimizer = optim.Adam(gpt.parameters(), lr=lr)
+        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=(29 + max_epochs)//30, gamma=0.9)
         first_loss = None
 
         epoch_history = defaultdict(list)
@@ -66,7 +67,7 @@ class PreTrainer:
             current_lr = lr_scheduler.get_last_lr()[0]
             if checkpoint_freq is not None and (epoch+1) % checkpoint_freq == 0:
                 Path(checkpoint_dir).parent.mkdir(exist_ok=True)
-                checkpoint_file = Path(checkpoint_dir) / f'chkpt_{epoch}.pth'
+                checkpoint_file = Path(checkpoint_dir) / f'chkpt_{epoch+1}.pth'
                 checkpoint_file = self._ensure_good_filename(checkpoint_file, overwrite_if_exists)
                 self.model.save(checkpoint_file)
                 self.logger.info(f'Checkpoint model saved: {checkpoint_file}')

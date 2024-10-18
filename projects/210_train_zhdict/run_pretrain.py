@@ -27,19 +27,25 @@ dataset = MemDataset.from_file(settings.pretrain_data_file,
                                seq_len=gpt_config['seq_len'], 
                                pretrain_text_sep=settings.pretrain_text_sep)
 data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-gpt = GPT.from_config(gpt_config)
+if settings.pretrain_initial_model is not None:
+    user_logger.info(f'Initial model for pretraining: {settings.pretrain_initial_model}')
+    gpt = GPT.from_pretrained(settings.pretrain_initial_model)
+else:
+    user_logger.info(f'No initial model for pretraining')
+    gpt = GPT.from_config(gpt_config)
 
 param_count = gpt.count_parameters()
-print(f'number of parameters: {param_count/1e6} M')
+user_logger.info(f'Number of parameters: {param_count/1e6} M')
+user_logger.info(f'Number training batches: {len(data_loader)}')
 
 # ** train **
 trainer = PreTrainer(gpt, data_loader=data_loader, logger=user_logger, device=device)
 exit_info = trainer.train(max_epochs=max_epochs,
+              lr=settings.pretrain_config['lr'],
               target_loss_ratio=target_loss_ratio,
               target_loss=target_loss,
               final_model_file=settings.final_model_file,
-              checkpoint_freq=None,
+              checkpoint_freq=settings.checkpoint_freq,
               overwrite_if_exists=True,
               verbose_freq=verbose_freq)
 

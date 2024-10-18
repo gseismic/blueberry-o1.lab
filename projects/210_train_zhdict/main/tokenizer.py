@@ -64,15 +64,17 @@ class Tokenizer:
         assert len(set(extra_special_tokens)) == len(extra_special_tokens)
         pretrain_text_sep = pretrain_text_sep or cls.default_pretrain_text_sep
         token_counter = Counter()
+        max_len = 0
         for filename in filenames:
             with open(filename, 'r', encoding='utf-8') as f:
                 text = f.read()
                 texts = text.split(pretrain_text_sep)
                 for text in texts:
                     tokens = cls._parse_tokens(text)
+                    max_len = max(max_len, len(tokens))
                     token_counter.update(tokens)
         
-        # print(f'{len(token_counter)} unique tokens found.')
+        print(f'{len(token_counter)} unique tokens found, {max_len=}')
         full_non_special_tokens = extra_non_special_tokens
         full_extra_special_tokens = extra_special_tokens
         for token, _ in token_counter.items():
