@@ -29,7 +29,6 @@ class GPTBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, mask=None):
-        # print(f'====={x.shape=}')
         self_attn_output, _ = self.self_attention(x, x, x, mask)
         x = self.layer_norm1(x + self.dropout(self_attn_output))
         ffn_output = self.ffn(x)
@@ -90,8 +89,6 @@ class GPT(nn.Module):
     def forward(self, x):
         # src: [batch_size, seq_len]
         # NOTE: 当前的x输入可能比self.seq_len小，并且是允许的
-        # print(f'GPT: {x.shape=}')
-        # print(self.initialized)
         assert self.initialized, 'Model not initialized'
         device = x.device
         batch_size = x.size(0)
@@ -105,9 +102,6 @@ class GPT(nn.Module):
         # print(f'{mask, mask.shape=}')
         # mask = None
         # energy = energy.masked_fill(causal_mask == 0, float('-inf'))
-        # print(f'{x.shape=}')
-        # print(f'{self.embedding(x).shape=}')
-        # print(f'{self.positional_encoding(x).shape=}')
         x = self.embedding(x) + self.positional_encoding(x)
         for block in self.blocks:
             x = block(x, mask)
