@@ -42,6 +42,8 @@ user_logger.info(f'Number training batches: {len(data_loader)}')
 trainer = PreTrainer(gpt, data_loader=data_loader, logger=user_logger, device=device)
 exit_info = trainer.train(max_epochs=max_epochs,
               lr=settings.pretrain_config['lr'],
+              warmup_epochs=settings.pretrain_config['warmup_epochs'],
+              grad_clip=settings.pretrain_config['grad_clip'],
               target_loss_ratio=target_loss_ratio,
               target_loss=target_loss,
               final_model_file=settings.final_model_file,

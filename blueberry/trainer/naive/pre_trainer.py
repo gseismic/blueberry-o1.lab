@@ -20,7 +20,7 @@ class PreTrainer:
     def set_data_loader(self, data_loader):
         self.data_loader = data_loader
     
-    def train_batch(self, gpt, criterion, optimizer, input_seq, target_seq):
+    def train_batch(self, gpt, criterion, optimizer, input_seq, target_seq, grad_clip):
         # input_seq, target_seq: 移位已经在dataset中处理了
         input_seq = input_seq.to(self.device)
         target_seq = target_seq.to(self.device)
@@ -31,6 +31,8 @@ class PreTrainer:
 
         optimizer.zero_grad()
         loss.backward()
+        if grad_clip is not None:
+            torch.nn.utils.clip_grad_norm_(gpt.parameters(), grad_clip)
         optimizer.step()
 
         return loss.detach().item()
@@ -38,6 +40,8 @@ class PreTrainer:
     def train(self,
               max_epochs, 
               lr=0.0001,
+              warmup_epochs=20,
+              grad_clip=None,
               target_loss_ratio=None,
               target_loss=None,
               verbose_freq=10,
@@ -48,7 +52,7 @@ class PreTrainer:
         # 损失函数和优化器
         gpt = self.model.to(self.device)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(gpt.parameters(), lr=lr)
+        optimizer = optim.Adam(gpt.parameters(), lr=lr) #, weight_decay=0.01)
         lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=(29 + max_epochs)//30, gamma=0.9)
         first_loss = None
 
@@ -57,14 +61,28 @@ class PreTrainer:
 
         training_start_time = time.time()
         for epoch in range(max_epochs):
+            # warm up
+            new_lr = None
+            if epoch < warmup_epochs:
+                new_lr = lr * ((epoch + 1) / warmup_epochs)**2
+                for param_group in optimizer.param_groups:
+                    param_group['lr'] = new_lr
+            # else:
+            #     new_lr = lr
             epoch_start_time = time.time()
             epoch_loss = 0
             for input_seq, target_seq in self.data_loader:
-                this_loss = self.train_batch(gpt, criterion, optimizer, input_seq, target_seq)
+                this_loss = self.train_batch(gpt, criterion, optimizer, 
+                                             input_seq, target_seq, grad_clip)
                 epoch_loss += this_loss
             
-            lr_scheduler.step() 
-            current_lr = lr_scheduler.get_last_lr()[0]
+            if epoch >= warmup_epochs:
+                lr_scheduler.step() 
+
+            if new_lr is None:
+                current_lr = lr_scheduler.get_last_lr()[0]
+            else:
+                current_lr = new_lr
             if checkpoint_freq is not None and (epoch+1) % checkpoint_freq == 0:
                 Path(checkpoint_dir).parent.mkdir(exist_ok=True)
                 checkpoint_file = Path(checkpoint_dir) / f'chkpt_{epoch+1}.pth'

@@ -41,7 +41,7 @@ for start_text in settings.eval_config['start_texts']:
     print(f'{start_tokens=}')
 
     max_generate_len = 200 # min(20, settings.gpt_config['seq_len']) # settings.gpt_config['seq_len']
-    # test_temperature(num_test=10, temperature=0.2)
+    test_temperature(num_test=2, temperature=0.2)
     # test_temperature(num_test=10, temperature=0.6)
     # test_temperature(num_test=10, temperature=0.9)
     # test_temperature(num_test=10, temperature=2.0)
