@@ -1,7 +1,6 @@
 import re
 from collections import Counter
 
-
 class Tokenizer:
     default_begin_text_token = '<|text/|>'
     default_end_text_token = '<|/text|>'

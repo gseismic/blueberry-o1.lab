@@ -22,6 +22,7 @@ class PreTrainer:
     
     def train_batch(self, gpt, criterion, optimizer, input_seq, target_seq, grad_clip):
         # input_seq, target_seq: 移位已经在dataset中处理了
+        # print('***')
         input_seq = input_seq.to(self.device)
         target_seq = target_seq.to(self.device)
 
@@ -72,6 +73,10 @@ class PreTrainer:
             epoch_start_time = time.time()
             epoch_loss = 0
             for input_seq, target_seq in self.data_loader:
+                # print(f'{input_seq.shape=}, {target_seq.shape=}')
+                # print(f'{input_seq=}')
+                # print(f'{target_seq=}')
+                # print('PreTrainer:input_seq.shape', input_seq.shape)
                 this_loss = self.train_batch(gpt, criterion, optimizer, 
                                              input_seq, target_seq, grad_clip)
                 epoch_loss += this_loss

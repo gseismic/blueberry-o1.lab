@@ -15,13 +15,18 @@ checkpoint_freq = 10
 
 # TODO: loss mask
 
+seq_len = 32
+
+# 思考:
+# 二阶下： ff_dim 代表概率转移矩阵的行数
+# num_layers * ff_dim 可能代表着最大共现词的数量（用来推断embeding中下一个词的概率)
 gpt_config = {
     "num_layers": 4, # 12, # 
-    "embed_dim": 12*10, # 768, memory影响不大？
+    "embed_dim": 6*12, # 768, memory影响不大？
     "num_heads": 6, # 12,
-    "ff_dim": 512,
-    "seq_len": 32, # 256, # 768, # **计算量n**2
-    "dropout": 0.1
+    "ff_dim": 6*12*3, # embed_dim*multiplier
+    # "seq_len": 32, # 256, # 768, # **计算量n**2
+    # "dropout": 0.1
 }
 
 # 动量具有batch_size效果，batch_size不必太大

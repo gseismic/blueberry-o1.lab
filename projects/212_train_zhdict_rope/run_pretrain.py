@@ -1,10 +1,10 @@
 from torch.utils.data import DataLoader
-from blueberry.model.gpt.naive import GPT
 from blueberry.trainer.naive import PreTrainer
 from blueberry.data.pretrain import MemDataset
 from blueberry.utils.seed import seed_all
 from blueberry.logger import user_logger
 from blueberry.tokenizer.naive import Tokenizer
+from blueberry.model.gpt.rope import GPT
 import settings
 
 pretrain_config = settings.pretrain_config
@@ -24,7 +24,7 @@ tokenizer = Tokenizer.from_files([settings.pretrain_data_file],
 gpt_config = settings.gpt_config | {'vocab_size': tokenizer.vocab_size}
 dataset = MemDataset.from_file(settings.pretrain_data_file, 
                                tokenizer=tokenizer,
-                               seq_len=gpt_config['seq_len'], 
+                               seq_len=settings.seq_len, 
                                pretrain_text_sep=settings.pretrain_text_sep)
 data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 if settings.pretrain_initial_model is not None:

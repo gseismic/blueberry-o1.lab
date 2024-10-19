@@ -12,7 +12,6 @@ class PositionalEncoding(nn.Module):
         self.encoding[:, 0::2] = torch.sin(position * div_term)
         self.encoding[:, 1::2] = torch.cos(position * div_term)
         self.encoding = self.encoding.unsqueeze(0)
-        # print(f'{self.encoding.shape=}')
 
     def forward(self, x):
         device = x.device

@@ -59,15 +59,11 @@ def generate_sequence(model, start_tokens, max_gen_len, vocab_size,
         start_tokens = [start_tokens]
     
     generated = start_tokens[:]
-    # print(f'{start_tokens=}')
     input_seq = torch.tensor(generated[-max_seq_len:], device=device).unsqueeze(0)  # [1, 1]
-    # print(f'{input_seq=}')
 
     with torch.no_grad():
         for i in range(max_gen_len - 1):
-            # print(f'{input_seq=}')
             input_seq = torch.tensor(generated[-max_seq_len:], device=device).unsqueeze(0)  # [1, 1]
-            # print(f'{i=}: {input_seq=}')
             output = model(input_seq)  # [1, seq_len, vocab_size]
             logits = output[0, -1, :]  # [vocab_size]
             

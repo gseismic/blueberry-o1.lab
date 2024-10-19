@@ -18,7 +18,6 @@ class MemDataset(Dataset):
         target_seq = torch.tensor(encoded[1:], dtype=torch.long)
         return input_seq, target_seq
 
-
     @classmethod 
     def from_file(cls, filename, tokenizer, seq_len, pretrain_text_sep):
         def get_data():

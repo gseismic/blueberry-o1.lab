@@ -41,7 +41,7 @@ class TransformerDecoder(nn.Module):
         self.layers = nn.ModuleList([
             TransformerDecoderBlock(embed_dim, num_heads, ff_dim, dropout) for _ in range(num_layers)
         ])
-        self.layer_norm = nn.LayerNorm(embed_dim)
+        self.layer_norm = nn.LayerNorm(embed_dim) # XXX TODO 这里应该去掉，layer_norm在decoder_block中已经存在
 
     def forward(self, x, enc_output, src_mask=None, tgt_mask=None):
         for layer in self.layers:

@@ -35,14 +35,16 @@ class GPTBlock(nn.Module):
         x = self.layer_norm2(x + self.dropout(ffn_output))
         return x
 
-
 class GPT(nn.Module):
 
     def __init__(self, 
-                 num_layers=None, 
-                 embed_dim=None, 
-                 num_heads=None, ff_dim=None, 
-                 vocab_size=None, seq_len=None, dropout=0.1):
+                 num_layers=None,
+                 embed_dim=None,
+                 num_heads=None, 
+                 ff_dim=None, 
+                 vocab_size=None, 
+                 seq_len=None,
+                 dropout=0.1):
         super(GPT, self).__init__()
         self.num_layers = num_layers
         self.embed_dim = embed_dim
@@ -114,7 +116,7 @@ class GPT(nn.Module):
         x = self.embedding(x) + self.positional_encoding(x)
         for block in self.blocks:
             x = block(x, mask)
-        x = self.layer_norm(x)
+        x = self.layer_norm(x) # TODO: remove
         output = self.fc_out(x)
         return output
 
@@ -122,6 +124,7 @@ class GPT(nn.Module):
     def initialized(self):
         return self._initialized
 
+    @torch.no_grad()
     def generate(self, start_tokens, max_len, temperature=1.0,
                  top_k=None, top_p=None, callback=None):
         from .generate import generate_sequence
