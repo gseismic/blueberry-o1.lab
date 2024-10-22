@@ -103,7 +103,7 @@ class Tokenizer:
         return token.startswith('<|') and token.endswith('|>')
 
     def encode(self, text,
-               bos: bool, eos: bool, 
+               bos: bool, eos: bool,
                allowed_special_tokens = set(), 
                disallowed_special_tokens = set(), 
                if_unknown='encode'):
@@ -154,6 +154,8 @@ class Tokenizer:
             if skip_all_special and token in self.special_tokens_ids:
                 return False
             return True
+        
+        assert isinstance(tokens, list)
         return ''.join([self.idx_to_char[token] 
                         for token in tokens 
                         if should_decode(token)])

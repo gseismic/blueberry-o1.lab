@@ -20,7 +20,7 @@ class PreTrainer:
     def set_data_loader(self, data_loader):
         self.data_loader = data_loader
     
-    def train_batch(self, gpt, criterion, optimizer, input_seq, target_seq, grad_clip):
+    def train_batch(self, gpt, criterion, optimizer, input_seq, target_seq, mask_seq, grad_clip):
         # input_seq, target_seq: 移位已经在dataset中处理了
         # print('***')
         input_seq = input_seq.to(self.device)
@@ -28,7 +28,17 @@ class PreTrainer:
 
         output = gpt(input_seq)  # 输出的形状: (batch_size, seq_len, vocab_size)
         # 计算损失并使用 .reshape()
+        # print('--output:', output.shape)
+        # print(f'--target: {target_seq.shape=}')
         loss = criterion(output.reshape(-1, gpt.vocab_size), target_seq.reshape(-1))
+        if mask_seq is None:
+            loss = loss.mean() 
+        else:
+            mask_seq = mask_seq.to(self.device)
+            mask_seq = mask_seq.view(-1)
+            # XXX mean or sum? 考虑优化时的动量
+            loss = torch.sum(loss * mask_seq) / torch.sum(mask_seq)
+            # loss = criterion(output.reshape(-1, gpt.vocab_size), target_seq.reshape(-1), mask_seq.reshape(-1))
 
         optimizer.zero_grad()
         loss.backward()
@@ -46,13 +56,14 @@ class PreTrainer:
               target_loss_ratio=None,
               target_loss=None,
               verbose_freq=10,
+              batch_verbose_freq=100,
               checkpoint_freq=None,
               final_model_file='models/final_model.pth',
               checkpoint_dir='models/checkpoint',
               overwrite_if_exists=False):
         # 损失函数和优化器
         gpt = self.model.to(self.device)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss(reduction='none') # do NOT use reduction='mean'
         optimizer = optim.Adam(gpt.parameters(), lr=lr) #, weight_decay=0.01)
         lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=(29 + max_epochs)//30, gamma=0.9)
         first_loss = None
@@ -72,15 +83,23 @@ class PreTrainer:
             #     new_lr = lr
             epoch_start_time = time.time()
             epoch_loss = 0
-            for input_seq, target_seq in self.data_loader:
+            # print('num:', len(self.data_loader))
+            for ii, tuple_ in enumerate(self.data_loader):
+                if len(tuple_) == 2:
+                    input_seq, target_seq = tuple_
+                    mask_seq = None
+                elif len(tuple_) == 3:
+                    input_seq, target_seq, mask_seq = tuple_
                 # print(f'{input_seq.shape=}, {target_seq.shape=}')
-                # print(f'{input_seq=}')
-                # print(f'{target_seq=}')
+                # print(f'{input_seq.shape=}')
+                # print(f'{target_seq.shape=}')
                 # print('PreTrainer:input_seq.shape', input_seq.shape)
-                this_loss = self.train_batch(gpt, criterion, optimizer, 
-                                             input_seq, target_seq, grad_clip)
+
+                this_loss = self.train_batch(gpt, criterion, optimizer,
+                                             input_seq, target_seq, mask_seq, grad_clip)
                 epoch_loss += this_loss
-            
+                if (ii+1) % batch_verbose_freq == 0:
+                    self.logger.info(f'Epoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, Batch-Loss: {this_loss:.6f}')            
             if epoch >= warmup_epochs:
                 lr_scheduler.step() 
 

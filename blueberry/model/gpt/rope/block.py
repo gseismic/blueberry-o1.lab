@@ -4,8 +4,11 @@ from .attention import CausalSelfAttention
 from .utils import RMSNorm
 
 # from: https://github.com/KellerJordan/modded-nanogpt/blob/master/train_gpt2.py
+# with modifications
 class MLP(nn.Module):
-
+    """
+    MLP (Multi-Layer Perceptron)
+    """
     def __init__(self, config):
         super().__init__()
         self.c_fc    = nn.Linear(config.embed_dim, config.ff_dim, bias=False)
