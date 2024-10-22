@@ -29,10 +29,10 @@ pretrain_initial_model = None
 pretrain_config = {
     'device': 'cuda',
     'seed': 36,
-    'lr': 1e-3, # 理论上，batch_size大，lr更大
-    'warmup_epochs': 50,
+    'lr': 5e-5, # 理论上，batch_size大，lr更大
+    'warmup_epochs': 0,
     'grad_clip': 1, # 这个数值理论上也应该 decrease
-    'batch_size': 320, # memory: linear，computation time not influenced
+    'batch_size': 128, # memory: linear，computation time not influenced
     'max_epochs': 1000,
     'target_loss_ratio': 0.001,
     'target_loss': 0.001,
