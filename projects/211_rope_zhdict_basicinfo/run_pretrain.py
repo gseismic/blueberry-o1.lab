@@ -1,5 +1,6 @@
 from torch.utils.data import DataLoader
-from blueberry.trainer.naive import PreTrainer
+# from blueberry.trainer.naive import PreTrainer
+from blueberry.trainer.adap import PreTrainer
 from blueberry.data.pretrain import MemDataset
 from blueberry.utils.seed import seed_all
 from blueberry.logger import user_logger
