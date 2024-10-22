@@ -32,7 +32,11 @@ pretrain_config = {
     'lr': 5e-5, # 理论上，batch_size大，lr更大
     'warmup_epochs': 0,
     'grad_clip': 1, # 这个数值理论上也应该 decrease
+<<<<<<< HEAD
     'batch_size': 320*2, # memory: linear，computation time not influenced
+=======
+    'batch_size': 128, # memory: linear，computation time not influenced
+>>>>>>> e60162b5884bfbd45463005a549e818fc3068445
     'max_epochs': 1000,
     'target_loss_ratio': 0.001,
     'target_loss': 0.001,
