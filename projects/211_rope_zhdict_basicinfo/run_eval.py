@@ -1,5 +1,6 @@
 from blueberry.model.gpt.naive import GPT
 from blueberry.tokenizer.naive import Tokenizer
+from blueberry.utils.xz import ensure_xzfile_decompressed
 import settings
 
 
@@ -30,6 +31,9 @@ def test_top_p(num_test, temperature, top_p):
         decoded_sequence = tokenizer.decode(generated_sequence, skip_all_special=True)
         print(f'\t{decoded_sequence}')
 
+
+# ** decompress xz file **  
+ensure_xzfile_decompressed(settings.pretrain_data_file)
 
 tokenizer = Tokenizer.from_files([settings.pretrain_data_file], 
                                 pretrain_text_sep=settings.pretrain_text_sep)

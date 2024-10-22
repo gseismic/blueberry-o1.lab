@@ -1,5 +1,9 @@
 from blueberry.tokenizer.naive import Tokenizer
+from blueberry.utils.xz import ensure_xzfile_decompressed
 import settings
+
+# ** decompress xz file **  
+ensure_xzfile_decompressed(settings.pretrain_data_file)
 
 # ** init dataset **
 tokenizer = Tokenizer.from_files([settings.pretrain_data_file], 
