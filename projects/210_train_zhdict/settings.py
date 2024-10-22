@@ -11,7 +11,7 @@ pretrain_text_sep = '|||\n\n'
 
 # final model file
 final_model_file = 'models/final_model.pth'
-checkpoint_freq = 10
+checkpoint_freq = 100
 
 # TODO: loss mask
 
@@ -20,7 +20,7 @@ gpt_config = {
     "embed_dim": 12*10, # 768, memory影响不大？
     "num_heads": 6, # 12,
     "ff_dim": 512,
-    "seq_len": 32, # 256, # 768, # **计算量n**2
+    "seq_len": 200, # 256, # 768, # **计算量n**2
     "dropout": 0.1
 }
 
@@ -34,7 +34,7 @@ pretrain_initial_model = None
 pretrain_config = {
     'device': 'cuda',
     'seed': 36,
-    'lr': 2e-5, # 理论上，batch_size大，lr更大
+    'lr': 2e-3, # 理论上，batch_size大，lr更大
     'warmup_epochs': 200,
     'grad_clip': 1, # 这个数值理论上也应该 decrease
     'batch_size': 32, # memory: linear，computation time not influenced
