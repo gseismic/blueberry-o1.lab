@@ -37,7 +37,8 @@ ensure_xzfile_decompressed(settings.pretrain_data_file)
 
 tokenizer = Tokenizer.from_files([settings.pretrain_data_file], 
                                 pretrain_text_sep=settings.pretrain_text_sep)
-gpt = GPT.load(settings.final_model_file)
+# gpt = GPT.load(settings.final_model_file)
+gpt = GPT.load(settings.eval_model_file)
 
 # ** generate **
 for start_text in settings.eval_config['start_texts']:

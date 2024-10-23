@@ -23,28 +23,29 @@ gpt_config = {
 # pretrain_initial_model = None
 # XXX continue-training
 # pretrain_initial_model = final_model_file
-pretrain_initial_model = 'models/checkpoint/chkpt_10.pth'
+pretrain_initial_model = 'models/checkpoint/chkpt_40.pth'
 # 继续训练，如果没有warmup，动量还没有积累，会出现陡增的情况
 # warmup数和动量大小相关，adam动量越大,warmup越大
 pretrain_config = {
     'device': 'cuda',
     'seed': 36,
-    'lr': 5e-5, # 理论上，batch_size大，lr更大
-    'warmup_epochs': 0,
+    'lr': 1e-4, # 理论上，batch_size大，lr更大
+    'warmup_epochs': 10,
     'grad_clip': 1, # 这个数值理论上也应该 decrease
-    'batch_size': 128, # memory: linear，computation time not influenced
-    'max_epochs': 1000,
+    'batch_size': 32, # memory: linear，computation time not influenced
+    'max_epochs': 500,
     'target_loss_ratio': 0.001,
     'target_loss': 0.001,
     'verbose_freq': 1,
-    'batch_verbose_freq': 1,
+    'batch_verbose_freq': 10,
 }
 
+eval_model_file = 'models/checkpoint/chkpt_130.pth'
 eval_config = {
     "start_texts": [
-        "`一`",
-        "`一`的意思",
-        # "`多`",
+        "汉字`中`",
+        "中",
+        #
     ]
 }
 

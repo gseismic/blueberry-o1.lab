@@ -2,8 +2,8 @@ from ....config import torch, F
 
 
 def generate_sequence(model, start_tokens, max_gen_len, vocab_size, 
-                      max_seq_len,
-                      device,
+                      max_seq_len=None,
+                      device='cuda',
                       temperature=1.0, top_k=None, top_p=None, callback=None):
     """
     生成文本序列。
@@ -51,6 +51,7 @@ def generate_sequence(model, start_tokens, max_gen_len, vocab_size,
     assert not (top_k is True and top_p is True)
     assert top_p is None or 0 < top_p < 1
     assert top_k is None or 0 < top_k <= max_gen_len
+    device = torch.device(device) if isinstance(device, str) else device
     # assert isinstance(start_tokens, list)
     model.eval()
     if isinstance(start_tokens, (list,tuple)):
@@ -59,11 +60,18 @@ def generate_sequence(model, start_tokens, max_gen_len, vocab_size,
         start_tokens = [start_tokens]
     
     generated = start_tokens[:]
-    input_seq = torch.tensor(generated[-max_seq_len:], device=device).unsqueeze(0)  # [1, 1]
+    if max_seq_len is None:
+        input_seq = torch.tensor(generated[:], device=device).unsqueeze(0)  # [1, 1]
+    else:
+        input_seq = torch.tensor(generated[-max_seq_len:], device=device).unsqueeze(0)  # [1, 1]
 
     with torch.no_grad():
         for i in range(max_gen_len - 1):
-            input_seq = torch.tensor(generated[-max_seq_len:], device=device).unsqueeze(0)  # [1, 1]
+            if max_seq_len is None:
+                input_seq = torch.tensor(generated[:], device=device).unsqueeze(0)  # [1, 1]
+            else:
+                input_seq = torch.tensor(generated[-max_seq_len:], device=device).unsqueeze(0)  # [1, 1]
+
             output = model(input_seq)  # [1, seq_len, vocab_size]
             logits = output[0, -1, :]  # [vocab_size]
             

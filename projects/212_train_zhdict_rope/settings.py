@@ -41,9 +41,9 @@ gpt_config = {
 
 # NOTE: 最后可考虑使用最后k步的平均模型作为最终输出
 # 动量具有batch_size效果，batch_size不必太大
-pretrain_initial_model = None
+# pretrain_initial_model = None
 # XXX continue-training
-# pretrain_initial_model = final_model_file
+pretrain_initial_model = final_model_file
 # pretrain_initial_model = 'models/checkpoint/chkpt_70.pth'
 # 继续训练，如果没有warmup，动量还没有积累，会出现陡增的情况
 # warmup数和动量大小相关，adam动量越大,warmup越大

@@ -63,7 +63,7 @@ class PreTrainer:
         criterion = nn.CrossEntropyLoss(reduction='none') # do NOT use reduction='mean'
         optimizer = optim.Adam(gpt.parameters(), lr=lr) #, weight_decay=0.01)
         # lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=(29 + max_epochs)//30, gamma=0.9)
-        lr_scheduler = AdapLR(optimizer, lr, enlarge_ratio=1.01, shrink_ratio=0.99, loss_eps=1e-8)
+        lr_scheduler = AdapLR(optimizer, lr) #, enlarge_ratio=1.01, shrink_ratio=0.99, loss_eps=1e-8)
         first_loss = None
 
         epoch_history = defaultdict(list)
@@ -92,8 +92,11 @@ class PreTrainer:
                 epoch_loss += this_loss
                 if not warming_up:
                     lr_scheduler.step_batch(this_loss)
-                if (ii+1) % batch_verbose_freq == 0:
-                    self.logger.info(f'Epoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {lr_scheduler.get_last_lr():10.3e}, Batch-Loss: {this_loss:.6f}')            
+                if ii+1 == 1 or (ii+1) % batch_verbose_freq == 0:
+                    if warming_up:
+                        self.logger.info(f'Epoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {new_lr:10.3e}, Batch-Loss: {this_loss:.6f}')            
+                    else:
+                        self.logger.info(f'Epoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {lr_scheduler.get_last_lr()[0]:10.3e}, Batch-Loss: {this_loss:.6f}')            
             if not warming_up:
                 lr_scheduler.step()
 
