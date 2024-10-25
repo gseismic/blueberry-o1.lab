@@ -30,10 +30,10 @@ pretrain_config = {
     'device': 'cuda',
     'seed': 36,
     'lr': 1e-4, # 理论上，batch_size大，lr更大
-    'warmup_epochs': 10,
+    'warmup_epochs': 1, # 10
     'grad_clip': 1, # 这个数值理论上也应该 decrease
     'batch_size': 32, # memory: linear，computation time not influenced
-    'max_epochs': 100,
+    'max_epochs': 2, # 100
     'target_loss_ratio': 0.001,
     'target_loss': 0.001,
     'verbose_freq': 1,
@@ -54,26 +54,6 @@ eval_config = {
         # "人",
         # "汉字`民`",
         # "汉字`我`",
-        # "汉字`你`",
-        # "汉字`他`",
-        # "汉字`她`",
-        # "汉字`它`",
-        # "汉字`是`",
-        # "汉字`在`",
-        # "汉字`和`",
-        # "汉字`也`",
-        # "汉字`了`",
-        # "汉字`在`",
-        # "汉字`我`",
-        # "汉字`有`",
-        # "汉字`和`",
-        # "汉字`就`",
-        # "汉字`不`",
-        # "汉字`人`",
-        # "汉字`都`",
-        # "汉字`一`",
-        # "`个`",
-        #
     ]
 }
 
@@ -103,4 +83,24 @@ finetune_eval_data_file = '../../datasets/zhdict/basic_full_qa_eval.txt'
 finetune_eval_text_sep = '|||\n\n'
 eval_finetune_config = {
     'max_generate_len': 50,
+}
+
+dpo_data_file = '../../datasets/zhdict/basic_full_dif_qa.txt'
+dpo_text_sep = '|||\n\n'
+dpo_initial_model = 'models/final_model_finetune.pth'
+dpo_ref_model = 'models/final_model_finetune.pth'
+dpo_final_model_file = 'models/final_model_dpo.pth'
+dpo_checkpoint_dir = 'models/checkpoint_dpo'
+dpo_config = {
+    'seed': 36,
+    'batch_size': 32,
+    'max_epochs': 30,
+    'lr': 1e-4,
+    'warmup_epochs': 5,
+    'grad_clip': 1,
+    'target_loss_ratio': 0.001,
+    'target_loss': 0.001,
+    'verbose_freq': 10,
+    'batch_verbose_freq': 10,
+    'checkpoint_freq': 5,
 }

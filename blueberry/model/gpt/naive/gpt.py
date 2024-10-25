@@ -2,7 +2,7 @@ from ....config import nn, torch
 from ...transformer.naive.positional_encoding import PositionalEncoding
 from ...transformer.naive.positionwise_feed_forward import PositionwiseFeedForward
 from ...transformer.naive.multi_head_attention import MultiHeadAttention
-
+import torch.nn.functional as F
 
 class GPTBlock(nn.Module):
     '''
@@ -96,7 +96,7 @@ class GPT(nn.Module):
             raise ValueError(f'Invalid Config: `{gpt_config}`')
         return GPT(**config)
         
-    def forward(self, x):
+    def forward(self, x, targets=None):
         # src: [batch_size, seq_len]
         # NOTE: 当前的x输入可能比self.seq_len小，并且是允许的
         assert self.initialized, 'Model not initialized'
@@ -118,6 +118,12 @@ class GPT(nn.Module):
             x = block(x, mask)
         x = self.layer_norm(x) # TODO: remove
         output = self.fc_out(x)
+        if targets is not None:
+            self.last_loss = F.cross_entropy(output.view(-1, output.size(-1)), targets.view(-1),
+                                            #  ignore_index=0,
+                                             reduction='none')
+        else:
+            self.last_loss = None
         return output
 
     @property
