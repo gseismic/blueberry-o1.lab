@@ -4,7 +4,8 @@ from ....config import torch, F
 def generate_sequence(model, start_tokens, max_gen_len, vocab_size, 
                       max_seq_len=None,
                       device='cuda',
-                      temperature=1.0, top_k=None, top_p=None, callback=None):
+                      temperature=1.0, top_k=None, top_p=None, callback=None,
+                      stop_at_eos=False, eos_token_id=None):
     """
     生成文本序列。
 
@@ -130,5 +131,7 @@ def generate_sequence(model, start_tokens, max_gen_len, vocab_size,
                 if should_stop is True:
                     break
             input_seq = torch.cat([input_seq, torch.tensor([[next_token]], device=device)], dim=1)
+            if stop_at_eos and eos_token_id is not None and next_token.item() == eos_token_id:
+                break
 
     return generated

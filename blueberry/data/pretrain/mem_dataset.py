@@ -33,7 +33,6 @@ class MemDataset(Dataset):
         target_seq = torch.tensor(encoded[1:], dtype=torch.long)
         if self.output_mask:
             mask_seq = torch.ones_like(input_seq)
-            # mask_seq[input_seq == self.tokenizer.eos_id] = 0
             mask_seq[target_seq == self.tokenizer.padding_id] = 0
             return input_seq, target_seq, mask_seq
         else:

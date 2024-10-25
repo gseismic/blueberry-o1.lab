@@ -180,7 +180,7 @@ class Tokenizer:
     def decode(self, tokens, 
                skip_bos=False, skip_eos=False,
                skip_padding=False, skip_unknown=False, 
-               skip_all_special=False, stop_if_eos=True):
+               skip_all_special=False, stop_at_eos=True):
         def should_decode(token):
             if (skip_bos or skip_all_special) and token == self.begin_text_id:
                 return False
@@ -198,7 +198,7 @@ class Tokenizer:
 
         out_tokens = []
         for token in tokens:
-            if stop_if_eos and token == self.end_text_id:
+            if stop_at_eos and token == self.end_text_id:
                 if not skip_all_special and not skip_eos: 
                     out_tokens.append(self.idx_to_char[token])
                 break

@@ -10,7 +10,7 @@ from collections import defaultdict
 from ...logger import user_logger
 from ...utils.lr_scheduler import AdapLR
 
-class PreTrainer:
+class FinetuneTrainer:
     
     def __init__(self, model, data_loader=None, device='cuda', logger=None):
         self.model = model
@@ -32,9 +32,16 @@ class PreTrainer:
         if mask_seq is None:
             loss = loss.mean() 
         else:
+            # 微调损失和预训练损失的mask
+            assert len(mask_seq) == 2
+            finetune_mask, pretrain_mask = mask_seq
+            alpha = 0.6
+            mask_seq = alpha * finetune_mask + (1 - alpha) * pretrain_mask
             mask_seq = mask_seq.to(self.device)
             mask_seq = mask_seq.view(-1)
-            # XXX mean or sum? 考虑优化时的动量
+            # XXX 可考虑梯度累加
+            # print(f'{mask_seq=}, len(mask_seq)={len(mask_seq)}')
+            # print(f'{loss=}, len(loss)={len(loss)}')
             loss = torch.sum(loss * mask_seq) / torch.sum(mask_seq)
 
         optimizer.zero_grad()
@@ -58,6 +65,31 @@ class PreTrainer:
               final_model_file='models/final_model.pth',
               checkpoint_dir='models/checkpoint',
               overwrite_if_exists=False):
+        # 检查 final_model_file 是否存在
+        final_model_path = Path(final_model_file)
+        if final_model_path.exists() and not overwrite_if_exists:
+            self.logger.warning(f"最终模型文件 {final_model_file} 已存在且未设置覆盖。训练将不会进行。")
+            return
+        # 检查 checkpoint_dir 是否存在
+        checkpoint_path = Path(checkpoint_dir)
+        if not checkpoint_path.exists():
+            checkpoint_path.mkdir(parents=True, exist_ok=True)
+        
+        # 如果设置了 checkpoint_freq，确保 checkpoint_dir 存在
+        if checkpoint_freq is not None:
+            if not checkpoint_path.exists():
+                checkpoint_path.mkdir(parents=True, exist_ok=True)
+            self.logger.info(f"检查点将每 {checkpoint_freq} 个 epoch 保存到 {checkpoint_dir}")
+        
+        # 记录训练开始时间
+        training_start_time = time.time()
+        
+        # 初始化最佳损失和对应的 epoch
+        best_loss = float('inf')
+        best_epoch = -1
+        # 确保 final_model_file 的父目录存在
+        final_model_path.parent.mkdir(parents=True, exist_ok=True)
+        
         # 损失函数和优化器
         gpt = self.model.to(self.device)
         criterion = nn.CrossEntropyLoss(reduction='none') # do NOT use reduction='mean'
@@ -69,7 +101,6 @@ class PreTrainer:
         epoch_history = defaultdict(list)
         gpt.train()
 
-        training_start_time = time.time()
         for epoch in range(max_epochs):
             # warm up
             new_lr = None
@@ -95,7 +126,7 @@ class PreTrainer:
                 inner_batch_losses.append(this_loss)
                 if not warming_up:
                     lr_scheduler.step_batch(this_loss)
-                if ii+1 == 1 or (ii+1) % batch_verbose_freq == 0:
+                if batch_verbose_freq is not None and (ii+1 == 1 or (ii+1) % batch_verbose_freq == 0):
                     _avg_inner_loss = np.mean(inner_batch_losses)
                     if warming_up:
                         self.logger.info(f'\tEpoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {new_lr:10.3e}, Batch-Loss: {_avg_inner_loss:.6f}')            

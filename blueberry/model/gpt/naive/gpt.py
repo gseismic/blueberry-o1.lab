@@ -104,7 +104,7 @@ class GPT(nn.Module):
         batch_size = x.size(0)
         cur_seq_len = x.size(1)
 
-        assert 1 <= cur_seq_len <= self.seq_len
+        assert 1 <= cur_seq_len <= self.seq_len, f'Current sequence length {cur_seq_len} is not in the range of [1, {self.seq_len}]'
         # Apply causal mask (N, 1, seq_len, seq_len)
         # 因为要用到batch_size
         mask = torch.tril(torch.ones((cur_seq_len, cur_seq_len), device=device)).expand(
@@ -125,16 +125,19 @@ class GPT(nn.Module):
         return self._initialized
 
     @torch.no_grad()
-    def generate(self, start_tokens, max_len, temperature=1.0,
-                 top_k=None, top_p=None, callback=None):
+    def generate(self, start_tokens, max_gen_len, temperature=1.0,
+                 top_k=None, top_p=None, callback=None,
+                 stop_at_eos=False, eos_token_id=None):
         from .generate import generate_sequence
         device = next(self.parameters()).device
-        samples = generate_sequence(self, start_tokens, max_len, self.vocab_size, 
+        samples = generate_sequence(self, start_tokens, max_gen_len, self.vocab_size, 
                                     max_seq_len=self.seq_len,
                                     device=device,
                                     temperature=temperature, 
                                     top_k=top_k, top_p=top_p,
-                                    callback=callback)
+                                    callback=callback,
+                                    stop_at_eos=stop_at_eos,
+                                    eos_token_id=eos_token_id)
         return samples
 
     def save(self, path):
