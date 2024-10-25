@@ -2,6 +2,7 @@ import random
 import numpy as np
 from collections import defaultdict
 from collections import deque
+from ...logger import user_logger
 
 class AdapLR:
     """
@@ -14,8 +15,13 @@ class AdapLR:
                  adjust_period: int = 180,
                  reduce_size: int = 100,
                  loss_eps: float = 1e-8,
-                 patience: int = 5
+                 patience: int = 3,
+                 logger = None
                  ):
+        """
+        Args:
+            patience 连续3次没有下降，认为需要shrink lr
+        """
         assert 0.1 < shrink_ratio < 1, 'shrink_ratio must be less than 1 and greater than 0.0'
         assert 1 < enlarge_ratio < 10.0, 'enlarge_ratio must be greater than 1 and less than 10.0'
         assert loss_eps > 0, 'loss_eps must be greater than 0'
@@ -25,6 +31,8 @@ class AdapLR:
         self.enlarge_ratio = enlarge_ratio
         self.shrink_ratio = shrink_ratio
         self.loss_eps = loss_eps
+        self.patience = patience
+        self.logger = logger or user_logger
         # self.loss_ratio_eps = loss_ratio_eps
         # 每个epoch一变
         self._enlarged_lr = self.initial_lr * enlarge_ratio
@@ -38,6 +46,7 @@ class AdapLR:
         self._i_batch = 0
         self._prev_batch_loss = None
         self._next_state = 0
+        self.patience_used = 0
         self.apply_lr(self._original_lr)
         
     def apply_lr(self, lr):
@@ -94,17 +103,23 @@ class AdapLR:
         loss_sum = loss_shrink + loss_original + loss_enlarge
         print(f'{loss_sum=}')
         i_max = np.argmax([loss_shrink, loss_original, loss_enlarge])
-        if loss_sum < 0 or i_max == 0:
+        if loss_sum < 0:
+            self.patience_used += 1
+        else:
+            self.patience_used = 0
+        
+        if self.patience_used >= self.patience or i_max == 0:
             self._shrinked_lr *= self.shrink_ratio
             self._original_lr *= self.shrink_ratio
             self._enlarged_lr *= self.shrink_ratio
-            print('*** shrink')
+            self.patience_used = 0
+            self.logger.debug(f'Shrink lr to {self._original_lr}')
         elif loss_sum > 0 and i_max == 2:
             self._shrinked_lr *= self.enlarge_ratio
             self._original_lr *= self.enlarge_ratio
             self._enlarged_lr *= self.enlarge_ratio
-            print('*** enlarge')
-        
+            self.logger.debug(f'Enlarge lr to {self._original_lr}')
+
         return
         # （1）loss-sum如果小于0，则应减小lr
         # （2）如果loss和为负或最大值为负（全部为负），不能增大lr

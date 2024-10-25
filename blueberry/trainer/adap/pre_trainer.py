@@ -80,6 +80,8 @@ class PreTrainer:
                     param_group['lr'] = new_lr
             epoch_start_time = time.time()
             epoch_loss = 0
+
+            inner_batch_losses = []
             for ii, tuple_ in enumerate(self.data_loader):
                 if len(tuple_) == 2:
                     input_seq, target_seq = tuple_
@@ -90,13 +92,15 @@ class PreTrainer:
                 this_loss = self.train_batch(gpt, criterion, optimizer,
                                              input_seq, target_seq, mask_seq, grad_clip)
                 epoch_loss += this_loss
+                inner_batch_losses.append(this_loss.detach().item())
                 if not warming_up:
                     lr_scheduler.step_batch(this_loss)
                 if ii+1 == 1 or (ii+1) % batch_verbose_freq == 0:
+                    _avg_inner_loss = np.mean(inner_batch_losses)
                     if warming_up:
-                        self.logger.info(f'Epoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {new_lr:10.3e}, Batch-Loss: {this_loss:.6f}')            
+                        self.logger.info(f'\tEpoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {new_lr:10.3e}, Batch-Loss: {_avg_inner_loss:.6f}')            
                     else:
-                        self.logger.info(f'Epoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {lr_scheduler.get_last_lr()[0]:10.3e}, Batch-Loss: {this_loss:.6f}')            
+                        self.logger.info(f'\tEpoch {epoch+1}, Batch {ii+1}/{len(self.data_loader)}, lr: {lr_scheduler.get_last_lr()[0]:10.3e}, Batch-Loss: {_avg_inner_loss:.6f}')            
             if not warming_up:
                 lr_scheduler.step()
 

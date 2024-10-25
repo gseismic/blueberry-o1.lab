@@ -1,20 +1,36 @@
 import re
 from collections import Counter
+from ...logger import user_logger
 
 class Tokenizer:
     default_begin_text_token = '<|text/|>'
     default_end_text_token = '<|/text|>'
     default_padding_token = '<|padding|>'
     default_unknown_token = '<|unknown|>'
+    default_begin_role_token = '<|role/|>'
+    default_end_role_token = '<|/role|>'
+    default_begin_content_token = '<|content/|>'
+    default_end_content_token = '<|/content|>'
+    default_begin_message_token = '<|message/|>'
+    default_end_message_token = '<|/message|>'
     default_pretrain_text_sep = '|||\n\n'
     def __init__(self, 
                  non_special_tokens: list,
                  extra_special_tokens=None,
-                #  num_reserved_special_tokens=100,
                  begin_text_token=None,
                  end_text_token=None,
                  padding_token=None, 
-                 unknown_token=None):
+                 unknown_token=None,
+                 begin_message_token=None,
+                 end_message_token=None,
+                 begin_role_token=None,
+                 end_role_token=None,
+                 begin_content_token=None,
+                 end_content_token=None,
+                 max_special_tokens=100,
+                 pretrain_text_sep=None,
+                 logger=None
+        ):  
         assert isinstance(non_special_tokens, list)
         assert extra_special_tokens is None or isinstance(extra_special_tokens, list)
         extra_special_tokens = extra_special_tokens or []
@@ -26,12 +42,29 @@ class Tokenizer:
         self.unknown_token = unknown_token or self.default_unknown_token
         self.begin_text_token = begin_text_token or self.default_begin_text_token
         self.end_text_token = end_text_token or self.default_end_text_token
+        self.begin_role_token = begin_role_token or self.default_begin_role_token
+        self.end_role_token = end_role_token or self.default_end_role_token
+        self.begin_content_token = begin_content_token or self.default_begin_content_token
+        self.end_content_token = end_content_token or self.default_end_content_token
+        self.begin_message_token = begin_message_token or self.default_begin_message_token
+        self.end_message_token = end_message_token or self.default_end_message_token
+        self.pretrain_text_sep = pretrain_text_sep or self.default_pretrain_text_sep
+        self.logger = logger or user_logger
+        assert max_special_tokens >= len(extra_special_tokens) + 6, f'max_special_tokens={max_special_tokens}, {len(extra_special_tokens)=}'
         self.special_tokens = [
             self.begin_text_token,
             self.end_text_token,
             self.padding_token,
             self.unknown_token,
-        ] + extra_special_tokens
+            self.begin_role_token,
+            self.end_role_token,
+            self.begin_content_token,
+            self.end_content_token,
+            self.begin_message_token,
+            self.end_message_token,
+        ] + extra_special_tokens 
+        self.special_tokens.extend([self.default_unknown_token] * (max_special_tokens - len(self.special_tokens)))
+        assert len(self.special_tokens) <= max_special_tokens, f'too many special tokens, {len(self.special_tokens)=}, {max_special_tokens=}'
         for token in self.special_tokens:
             assert self.is_special_token(token), f'special token `{token}` is not a valid special token'
         self.non_special_tokens = non_special_tokens
@@ -42,6 +75,12 @@ class Tokenizer:
         self.end_text_id = self.char_to_idx[self.end_text_token]
         self.padding_id = self.char_to_idx[self.padding_token]
         self.unknown_id = self.char_to_idx[self.unknown_token]
+        self.begin_role_id = self.char_to_idx[self.begin_role_token]
+        self.end_role_id = self.char_to_idx[self.end_role_token]
+        self.begin_content_id = self.char_to_idx[self.begin_content_token]
+        self.end_content_id = self.char_to_idx[self.end_content_token]
+        self.begin_message_id = self.char_to_idx[self.begin_message_token]
+        self.end_message_id = self.char_to_idx[self.end_message_token]
         self.special_tokens_ids = set([self.char_to_idx[token] for token in self.special_tokens])
         self._vocab_size = len(self.tokens)
     
@@ -73,7 +112,7 @@ class Tokenizer:
                     max_len = max(max_len, len(tokens))
                     token_counter.update(tokens)
         
-        print(f'{len(token_counter)} unique tokens found, {max_len=}')
+        user_logger.info(f'{len(token_counter)} unique tokens found, {max_len=}')
         full_non_special_tokens = extra_non_special_tokens
         full_extra_special_tokens = extra_special_tokens
         for token, _ in token_counter.items():
@@ -141,7 +180,7 @@ class Tokenizer:
     def decode(self, tokens, 
                skip_bos=False, skip_eos=False,
                skip_padding=False, skip_unknown=False, 
-               skip_all_special=False):
+               skip_all_special=False, stop_if_eos=True):
         def should_decode(token):
             if (skip_bos or skip_all_special) and token == self.begin_text_id:
                 return False
@@ -156,6 +195,14 @@ class Tokenizer:
             return True
         
         assert isinstance(tokens, list)
-        return ''.join([self.idx_to_char[token] 
-                        for token in tokens 
-                        if should_decode(token)])
+
+        out_tokens = []
+        for token in tokens:
+            if stop_if_eos and token == self.end_text_id:
+                if not skip_all_special and not skip_eos: 
+                    out_tokens.append(self.idx_to_char[token])
+                break
+            if not should_decode(token):
+                continue
+            out_tokens.append(self.idx_to_char[token])
+        return ''.join(out_tokens)
