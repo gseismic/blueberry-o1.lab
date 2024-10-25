@@ -23,10 +23,12 @@ dataset = DifftuneDataset.from_file(settings.dpo_data_file,
                                max_seq_len=settings.seq_len, 
                                data_sep=settings.dpo_text_sep)
 data_loader = DataLoader(dataset, batch_size=settings.dpo_config['batch_size'], shuffle=True)
-
-print('len', len(dataset))
-for item in dataset:
-    print(item)
+print(f'datasetlen: {len(dataset)}')
+# for item in dataset:
+#     print(item)
+for batch in data_loader:
+    print(batch)
+    # break
 # raise
 user_logger.info(f'Initial model for finetuning: {settings.dpo_initial_model}')
 gpt = GPT.from_pretrained(settings.dpo_initial_model)

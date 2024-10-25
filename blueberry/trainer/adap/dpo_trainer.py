@@ -40,10 +40,15 @@ class DPOTrainer:
         
         ref_chosen_logits = gpt_ref(chosen_input_seq)
         ref_rejected_logits = gpt_ref(rejected_input_seq)
+
+        print(f'chosen_logits: {chosen_logits.shape}, rejected_logits: {rejected_logits.shape}')
         
         # 计算 log 概率比率： shape: (batch_size, seq_len)
         log_ratio_chosen = F.log_softmax(chosen_logits, dim=-1) - F.log_softmax(ref_chosen_logits, dim=-1)
         log_ratio_rejected = F.log_softmax(rejected_logits, dim=-1) - F.log_softmax(ref_rejected_logits, dim=-1)
+
+        print(f'log_ratio_chosen: {log_ratio_chosen.shape}, log_ratio_rejected: {log_ratio_rejected.shape}')
+        raise
         # 计算偏好分数： shape: (batch_size, seq_len)
         preference_score = beta * (log_ratio_chosen - log_ratio_rejected)
         # 计算损失： shape: (batch_size, seq_len)
@@ -137,6 +142,8 @@ class DPOTrainer:
 
             inner_batch_losses = []
             for ii, batch in enumerate(self.data_loader):
+                # print(f'batch: {batch}')
+                # continue
                 this_loss = self.train_batch(self.model, self.ref_model, optimizer, batch, grad_clip, beta)
                 epoch_loss += this_loss
                 inner_batch_losses.append(this_loss)

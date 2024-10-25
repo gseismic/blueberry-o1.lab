@@ -44,11 +44,12 @@ class FinetuneDataset(Dataset):
         target_seq = torch.tensor(encoded[1:], dtype=torch.long)
         if self.output_mask:
             finetune_mask = torch.zeros_like(target_seq)
-            finetune_mask[message_seps[-1]:] = 1 # 只对助手回答部分计算微调损失
+            sep_assistant = message_seps[-2] # fixed: -1 -> -2
+            finetune_mask[sep_assistant:] = 1 # 只对助手回答部分计算微调损失
             finetune_mask[target_seq == self.tokenizer.padding_id] = 0 # 不计算padding部分的损失
 
             pretrain_mask = torch.ones_like(input_seq)
-            pretrain_mask[message_seps[-1]:] = 0
+            pretrain_mask[sep_assistant:] = 0
             pretrain_mask[target_seq == self.tokenizer.padding_id] = 0
 
             if self.mask_first_token:

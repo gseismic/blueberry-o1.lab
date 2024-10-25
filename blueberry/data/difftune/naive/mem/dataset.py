@@ -67,6 +67,7 @@ class DifftuneDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.data[idx]
+        print(f'item: {item}')
         chat_format = ChatFormat(self.tokenizer)
         question = item['question']
         chosen_answer = item['chosen_answer']
@@ -83,13 +84,15 @@ class DifftuneDataset(Dataset):
         ])
         chosen_message_seps = chosen_info['message_seps']
         rejected_message_seps = rejected_info['message_seps']
-        # assert chosen_message_seps[-1] == rejected_message_seps[-1], f'chosen_answer和rejected_answer的对话长度不一致: ```{question=}, {chosen_answer=}, {rejected_answer=}```'
+        # chosen/rejected答案不一定长度相同
+        # assert chosen_message_seps[-1] == rejected_message_seps[-1]
         assert len(chosen_tokens) <= self.max_seq_len + 1, f'Too long text will cause information loss: ```{question=}, {chosen_answer=}```, with len(tokens)={len(chosen_tokens)=}, max_len={self.max_seq_len}'
-        encoded = chosen_tokens[:self.max_seq_len+1] + [self.tokenizer.padding_id] * (self.max_seq_len + 1 - len(chosen_tokens[:self.max_seq_len+1]))  # Padding/truncating
-        chosen_input_seq = torch.tensor(encoded[0:-1], dtype=torch.long)
-        chosen_target_seq = torch.tensor(encoded[1:], dtype=torch.long)
-        rejected_input_seq = torch.tensor(rejected_tokens[0:-1], dtype=torch.long)
-        rejected_target_seq = torch.tensor(rejected_tokens[1:], dtype=torch.long)
+        chosen_encoded = chosen_tokens[:self.max_seq_len+1] + [self.tokenizer.padding_id] * (self.max_seq_len + 1 - len(chosen_tokens[:self.max_seq_len+1]))  # Padding/truncating
+        chosen_input_seq = torch.tensor(chosen_encoded[0:-1], dtype=torch.long)
+        chosen_target_seq = torch.tensor(chosen_encoded[1:], dtype=torch.long)
+        rejected_encoded = rejected_tokens[:self.max_seq_len+1] + [self.tokenizer.padding_id] * (self.max_seq_len + 1 - len(rejected_tokens[:self.max_seq_len+1]))  # Padding/truncating
+        rejected_input_seq = torch.tensor(rejected_encoded[0:-1], dtype=torch.long)
+        rejected_target_seq = torch.tensor(rejected_encoded[1:], dtype=torch.long)
         if self.output_mask:
             chosen_finetune_mask = torch.zeros_like(chosen_target_seq)
             # 只对助手回答部分计算微调损失: 只计算assistant的token的概率乘积
@@ -113,6 +116,7 @@ class DifftuneDataset(Dataset):
             if self.mask_first_token:
                 rejected_pretrain_mask[0] = 0
 
+            # return (chosen_input_seq, chosen_target_seq), (rejected_input_seq, rejected_target_seq)
             return (chosen_input_seq, chosen_target_seq, (chosen_finetune_mask, chosen_pretrain_mask)), (rejected_input_seq, rejected_target_seq, (rejected_finetune_mask, rejected_pretrain_mask))
         else:
             return (chosen_input_seq, chosen_target_seq), (rejected_input_seq, rejected_target_seq)
