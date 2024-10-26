@@ -89,19 +89,19 @@ class AdapLR:
         if self._loss_decr_dict[0]:
             loss_original = fn_reduce(list(self._loss_decr_dict[0]))
         
-        print(len(self._loss_decr_dict[-1]))
-        print(len(self._loss_decr_dict[0]))
-        print(len(self._loss_decr_dict[1]))
-        print(f'loss_shrink: {loss_shrink:>20.9f}')
-        print(f'loss_original: {loss_original:>20.8f}')
-        print(f'loss_enlarge: {loss_enlarge:>20.8f}')
+        # print(len(self._loss_decr_dict[-1]))
+        # print(len(self._loss_decr_dict[0]))
+        # print(len(self._loss_decr_dict[1]))
+        # print(f'loss_shrink: {loss_shrink:>20.9f}')
+        # print(f'loss_original: {loss_original:>20.8f}')
+        # print(f'loss_enlarge: {loss_enlarge:>20.8f}')
         # self._loss_decr_dict.clear()
         # 如果loss_dict中没有数据，则不更新lr，说明数据量比较少
         if loss_enlarge is None or loss_shrink is None or loss_original is None:
             return
         
         loss_sum = loss_shrink + loss_original + loss_enlarge
-        print(f'{loss_sum=}')
+        # print(f'{loss_sum=}')
         i_max = np.argmax([loss_shrink, loss_original, loss_enlarge])
         if loss_sum < 0:
             self.patience_used += 1
@@ -124,32 +124,32 @@ class AdapLR:
         # （1）loss-sum如果小于0，则应减小lr
         # （2）如果loss和为负或最大值为负（全部为负），不能增大lr
         # 也可以根据p值来更新
-        if loss_shrink + self.loss_eps < loss_original < loss_enlarge - self.loss_eps:
-            if loss_shrink > 0:
-                self._shrinked_lr = self._original_lr
-                self._original_lr = self._enlarged_lr
-                self._enlarged_lr = self.enlarge_ratio * self._enlarged_lr
-            elif loss_enlarge < 0:
-                # 所有loss都在上涨
-                self._enlarged_lr *= self.shrink_ratio
-                self._original_lr *= self.shrink_ratio
-                self._shrinked_lr *= self.shrink_ratio
-                pass
-            print('**enlarge')
-        elif loss_enlarge + self.loss_eps < loss_original < loss_shrink - self.loss_eps:
-            if loss_enlarge > 0:
-                self._enlarged_lr = self._original_lr
-                self._original_lr = self._shrinked_lr
-                self._shrinked_lr = self.shrink_ratio * self._shrinked_lr
-            elif loss_shrink < 0:
-                self._enlarged_lr *= self.shrink_ratio
-                self._original_lr *= self.shrink_ratio
-                self._shrinked_lr *= self.shrink_ratio
-                pass
-            print('**shrink')
-        else:
-            print('**keep same')
-            pass
+        # if loss_shrink + self.loss_eps < loss_original < loss_enlarge - self.loss_eps:
+        #     if loss_shrink > 0:
+        #         self._shrinked_lr = self._original_lr
+        #         self._original_lr = self._enlarged_lr
+        #         self._enlarged_lr = self.enlarge_ratio * self._enlarged_lr
+        #     elif loss_enlarge < 0:
+        #         # 所有loss都在上涨
+        #         self._enlarged_lr *= self.shrink_ratio
+        #         self._original_lr *= self.shrink_ratio
+        #         self._shrinked_lr *= self.shrink_ratio
+        #         pass
+        #     print('**enlarge')
+        # elif loss_enlarge + self.loss_eps < loss_original < loss_shrink - self.loss_eps:
+        #     if loss_enlarge > 0:
+        #         self._enlarged_lr = self._original_lr
+        #         self._original_lr = self._shrinked_lr
+        #         self._shrinked_lr = self.shrink_ratio * self._shrinked_lr
+        #     elif loss_shrink < 0:
+        #         self._enlarged_lr *= self.shrink_ratio
+        #         self._original_lr *= self.shrink_ratio
+        #         self._shrinked_lr *= self.shrink_ratio
+        #         pass
+        #     print('**shrink')
+        # else:
+        #     print('**keep same')
+        #     pass
     
     def step(self):
         pass

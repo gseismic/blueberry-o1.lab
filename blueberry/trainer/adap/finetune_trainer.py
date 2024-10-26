@@ -35,7 +35,7 @@ class FinetuneTrainer:
             # 微调损失和预训练损失的mask
             assert len(mask_seq) == 2
             finetune_mask, pretrain_mask = mask_seq
-            alpha = 0.6
+            alpha = 0.9
             mask_seq = alpha * finetune_mask + (1 - alpha) * pretrain_mask
             mask_seq = mask_seq.to(self.device)
             mask_seq = mask_seq.view(-1)

@@ -67,7 +67,7 @@ class DifftuneDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.data[idx]
-        print(f'item: {item}')
+        # print(f'item: {item}')
         chat_format = ChatFormat(self.tokenizer)
         question = item['question']
         chosen_answer = item['chosen_answer']
@@ -94,32 +94,38 @@ class DifftuneDataset(Dataset):
         rejected_input_seq = torch.tensor(rejected_encoded[0:-1], dtype=torch.long)
         rejected_target_seq = torch.tensor(rejected_encoded[1:], dtype=torch.long)
         if self.output_mask:
+            assert chosen_message_seps[-2] == rejected_message_seps[-2]
             chosen_finetune_mask = torch.zeros_like(chosen_target_seq)
             # 只对助手回答部分计算微调损失: 只计算assistant的token的概率乘积
-            chosen_finetune_mask[chosen_message_seps[-1]:] = 1
+            sep_assistant = chosen_message_seps[-2] 
+            chosen_finetune_mask[sep_assistant-1:] = 1 # 确保连续，第一个token是 </role>
             chosen_finetune_mask[chosen_target_seq == self.tokenizer.padding_id] = 0 # 不计算padding部分的损失
 
             rejected_finetune_mask = torch.zeros_like(rejected_target_seq)
-            rejected_finetune_mask[rejected_message_seps[-1]:] = 1
+            rejected_finetune_mask[sep_assistant-1:] = 1
             rejected_finetune_mask[rejected_target_seq == self.tokenizer.padding_id] = 0 # 不计算padding部分的损失
 
             # 对问题部分的预训练，本质是：要求问题部分为合理的对话序列
-            # assert sep == rejected_message_seps[-1]
-            chosen_pretrain_mask = torch.ones_like(chosen_input_seq)
-            chosen_pretrain_mask[chosen_message_seps[-1]:] = 0 
-            chosen_pretrain_mask[chosen_target_seq == self.tokenizer.padding_id] = 0
+            shared_pretrain_mask = torch.ones_like(chosen_input_seq)
+            shared_pretrain_mask[sep_assistant:] = 0 
+            shared_pretrain_mask[chosen_target_seq == self.tokenizer.padding_id] = 0
             if self.mask_first_token:
-                chosen_pretrain_mask[0] = 0
-            rejected_pretrain_mask = torch.ones_like(rejected_input_seq)
-            rejected_pretrain_mask[rejected_message_seps[-1]:] = 0
-            rejected_pretrain_mask[rejected_target_seq == self.tokenizer.padding_id] = 0
-            if self.mask_first_token:
-                rejected_pretrain_mask[0] = 0
-
-            # return (chosen_input_seq, chosen_target_seq), (rejected_input_seq, rejected_target_seq)
-            return (chosen_input_seq, chosen_target_seq, (chosen_finetune_mask, chosen_pretrain_mask)), (rejected_input_seq, rejected_target_seq, (rejected_finetune_mask, rejected_pretrain_mask))
+                shared_pretrain_mask[0] = 0
+            
+            shared_finetune_mask = chosen_finetune_mask & rejected_finetune_mask
+            # print(f'{shared_finetune_mask=}, {shared_finetune_mask.shape=}, {shared_finetune_mask.sum()=}')
+            # print(f'{chosen_finetune_mask=}, {chosen_finetune_mask.shape=}, {chosen_finetune_mask.sum()=}')
+            # print(f'{rejected_finetune_mask=}, {rejected_finetune_mask.shape=}, {rejected_finetune_mask.sum()=}')
+            return (
+                (chosen_input_seq, chosen_target_seq, chosen_finetune_mask), 
+                (rejected_input_seq, rejected_target_seq, rejected_finetune_mask), 
+                (shared_pretrain_mask, shared_finetune_mask)
+            )
         else:
-            return (chosen_input_seq, chosen_target_seq), (rejected_input_seq, rejected_target_seq)
+            return (
+                (chosen_input_seq, chosen_target_seq), 
+                (rejected_input_seq, rejected_target_seq)
+            )
     
     @staticmethod
     def read_file(filename, data_sep):

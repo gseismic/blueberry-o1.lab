@@ -8,6 +8,7 @@ from blueberry.model.gpt.naive import GPT
 from torch.utils.data import DataLoader
 import settings
 
+# XXX，TODO 没有加ref_model约束
 seed_all(settings.finetune_config['seed'])
 
 ensure_xzfile_decompressed(settings.finetune_data_file)

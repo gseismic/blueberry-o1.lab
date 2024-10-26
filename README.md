@@ -1,36 +1,14 @@
-# strawberry-o1.lab
-strawberry-o1: AGI from 0(zero) to 1(O1)
-
-## Thinks
-- 这是最重要的问题吗？
-- 为什么这样设计？
-- 真的有效吗，严格的数学逻辑是什么？
-
-## Papers
-[Scaling Laws and Compute-Optimal Training Beyond Fixed Training Durations](https://arxiv.org/pdf/2405.18392)
-```
-The constant + cooldown schedule allows for continual learning by default.
-Here, the natural approach is to use checkpoints before the cooldown to continue training with a
-high LR; this avoids loss spikes and brittle training when rewarming the learning rate (cf. Figure
-1 with cosine). Moreover, rewarming has been reported to hurt performance and introduce forgetting
-compared to single annealing training (Ibrahim et al., 2024), though careful strategies can alleviate
-such issues. It remains an interesting question if a single cooldown schedule is absolutely optimal
-given a total compute budget for LLM training.
-```
-不用指定训练次数
-We find a cooldown form (1-sqrt) that consistently performs better than linear decay.
-可能是因为后期需要小学习率，或可采用cosine schedule
-
-## Notes
-- 考虑对任意模型推理阶段加速
-
-## Reference
-- 
+# blueberry-o1.lab
+draft code on LLM [NOT-FINISHED]
+o1.lab: NOT-STARTED
+NOT-ready, please do NOT use
 
 ## Data
 - [wiki](https://zh.wikipedia.org/wiki/%E6%BC%94%E7%BB%8E%E6%8E%A8%E7%90%86)
 
 ## Reference
+[Scaling Laws and Compute-Optimal Training Beyond Fixed Training Durations](https://arxiv.org/pdf/2405.18392)
+
 《从零实现强化学习、RLHF、AlphaZero》-1：基于价值的强化学习1-理论基础、q learning、sarsa、dqn
 https://zhuanlan.zhihu.com/p/673543350
 

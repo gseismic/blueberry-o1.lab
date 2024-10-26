@@ -23,37 +23,47 @@ class DPOTrainer:
         self.data_loader = data_loader
     
     def train_batch(self, gpt, gpt_ref, optimizer, batch, grad_clip, beta=1.0):
-        # input_seq, target_seq: 移位已经在dataset中处理了
-        (chosen_input_seq, chosen_target_seq, (chosen_finetune_mask, chosen_pretrain_mask)), (rejected_input_seq, rejected_target_seq, (rejected_finetune_mask, rejected_pretrain_mask)) = batch
+        (
+            (chosen_input_seq, chosen_target_seq, chosen_finetune_mask), 
+            (rejected_input_seq, rejected_target_seq, rejected_finetune_mask), 
+            (shared_pretrain_mask, shared_finetune_mask)
+        ) = batch
 
         chosen_input_seq = chosen_input_seq.to(self.device)
         chosen_target_seq = chosen_target_seq.to(self.device)
         chosen_finetune_mask = chosen_finetune_mask.to(self.device)
-        chosen_pretrain_mask = chosen_pretrain_mask.to(self.device)
         rejected_input_seq = rejected_input_seq.to(self.device)
         rejected_target_seq = rejected_target_seq.to(self.device)
         rejected_finetune_mask = rejected_finetune_mask.to(self.device)
-        rejected_pretrain_mask = rejected_pretrain_mask.to(self.device)
+        shared_pretrain_mask = shared_pretrain_mask.to(self.device)
+        shared_finetune_mask = shared_finetune_mask.to(self.device)
 
         chosen_logits = gpt(chosen_input_seq)  # 输出的形状: (batch_size, seq_len, vocab_size)
         rejected_logits = gpt(rejected_input_seq)  # 输出的形状: (batch_size, seq_len, vocab_size)
         
         ref_chosen_logits = gpt_ref(chosen_input_seq)
         ref_rejected_logits = gpt_ref(rejected_input_seq)
-
-        print(f'chosen_logits: {chosen_logits.shape}, rejected_logits: {rejected_logits.shape}')
         
-        # 计算 log 概率比率： shape: (batch_size, seq_len)
+        # 计算 log 概率比率： shape: (batch_size, seq_len, vocab_size)
         log_ratio_chosen = F.log_softmax(chosen_logits, dim=-1) - F.log_softmax(ref_chosen_logits, dim=-1)
         log_ratio_rejected = F.log_softmax(rejected_logits, dim=-1) - F.log_softmax(ref_rejected_logits, dim=-1)
 
-        print(f'log_ratio_chosen: {log_ratio_chosen.shape}, log_ratio_rejected: {log_ratio_rejected.shape}')
-        raise
-        # 计算偏好分数： shape: (batch_size, seq_len)
-        preference_score = beta * (log_ratio_chosen - log_ratio_rejected)
-        # 计算损失： shape: (batch_size, seq_len)
-        loss = -torch.log(torch.sigmoid(preference_score)).mean()
-        # loss 的 shape: (batch_size,)
+        # 计算偏好分数： shape: (batch_size, seq_len, vocab_size)
+        # p(y|x) 的 mask 是 shared_finetune_mask，只关注y——微调数据
+        # print(f'{log_ratio_chosen.shape=}, {log_ratio_rejected.shape=}, {shared_finetune_mask.shape=}')
+        preference_score = beta * (log_ratio_chosen - log_ratio_rejected) # * shared_finetune_mask
+        # 计算损失： shape: (batch_size, seq_len, vocab_size)
+        # print(f'{preference_score.shape=}')
+        # raise
+        # preference_score 的形状: (batch_size, seq_len, vocab_size)
+        # shared_finetune_mask 的形状: (batch_size, seq_len)
+        loss = -torch.log(torch.sigmoid(preference_score)).mean(dim=-1)
+        # print(f'{loss=}, {loss.shape=}, {loss.sum()=}')
+        loss = torch.sum(loss * shared_finetune_mask) / torch.sum(shared_finetune_mask)
+        # print(f'{shared_finetune_mask=}, {shared_finetune_mask.shape=}, {shared_finetune_mask.sum()=}')
+        # print(f'{loss=}, {loss.shape=}, {loss.sum()=}')
+        # raise
+        # loss 的 shape: (batch_size)
         
         # 计算损失并使用 .reshape()
         # loss = criterion(output.reshape(-1, gpt.vocab_size), target_seq.reshape(-1))

@@ -58,6 +58,7 @@ eval_config = {
 }
 
 finetune_initial_model = 'models/final_model.pth'
+finetune_ref_model = 'models/final_model.pth' # XXX, TODO 没有加ref_model约束
 finetune_final_model_file = 'models/final_model_finetune.pth'
 finetune_checkpoint_dir = 'models/checkpoint_finetune'
 finetune_data_file = '../../datasets/zhdict/basic_full_qa.txt'
@@ -76,8 +77,8 @@ finetune_config = {
     'checkpoint_freq': 5,
 }
 
-finetune_eval_model_file = 'models/final_model_finetune.pth'
-# finetune_eval_model_file = 'models/checkpoint_finetune/chkpt_10.pth'
+# finetune_eval_model_file = 'models/final_model_finetune.pth'
+finetune_eval_model_file = 'models/checkpoint_finetune/chkpt_30.pth'
 finetune_eval_data_file = '../../datasets/zhdict/basic_full_qa_eval.txt'
 # finetune_eval_data_file = '../../datasets/zhdict/basic_full_qa.txt'
 finetune_eval_text_sep = '|||\n\n'
@@ -87,20 +88,34 @@ eval_finetune_config = {
 
 dpo_data_file = '../../datasets/zhdict/basic_full_dif_qa.txt'
 dpo_text_sep = '|||\n\n'
-dpo_initial_model = 'models/final_model_finetune.pth'
-dpo_ref_model = 'models/final_model_finetune.pth'
+
+# dpo_initial_model = 'models/final_model_finetune.pth'
+# dpo_ref_model = 'models/final_model_finetune.pth'
+# 直接使用pretrain模型
+# dpo_initial_model = 'models/final_model.pth'
+# dpo_ref_model = 'models/final_model.pth'
+dpo_initial_model = 'models/checkpoint_finetune/chkpt_15.pth'
+dpo_ref_model = 'models/checkpoint_finetune/chkpt_15.pth'
+
 dpo_final_model_file = 'models/final_model_dpo.pth'
 dpo_checkpoint_dir = 'models/checkpoint_dpo'
 dpo_config = {
     'seed': 36,
+    'beta': 0.1,
     'batch_size': 32,
-    'max_epochs': 30,
-    'lr': 1e-4,
-    'warmup_epochs': 5,
+    'max_epochs': 200,
+    'lr': 1e-5, #  when finetunning: make smaller 
+    'warmup_epochs': 50,
     'grad_clip': 1,
     'target_loss_ratio': 0.001,
     'target_loss': 0.001,
     'verbose_freq': 10,
     'batch_verbose_freq': 10,
-    'checkpoint_freq': 5,
+    'checkpoint_freq': 10,
+}
+
+dpo_eval_data_file = '../../datasets/zhdict/basic_full_dpo_eval.txt'
+dpo_eval_text_sep = '|||\n\n'
+dpo_eval_config = {
+    'max_generate_len': 50,
 }
