@@ -114,7 +114,8 @@ dpo_config = {
     'checkpoint_freq': 10,
 }
 
-dpo_eval_data_file = '../../datasets/zhdict/basic_full_dpo_eval.txt'
+# dpo_eval_data_file = '../../datasets/zhdict/basic_full_dpo_eval.txt'
+dpo_eval_data_file = '../../datasets/zhdict/basic_full_qa_eval.txt'
 dpo_eval_text_sep = '|||\n\n'
 dpo_eval_config = {
     'max_generate_len': 50,

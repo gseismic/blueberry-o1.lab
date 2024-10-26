@@ -20,16 +20,16 @@ def get_data():
         text = f.read()
     return [json.loads(t.strip()) for t in text.split(settings.dpo_eval_text_sep)]
 
-data = get_data()
+data = get_data()[:100]
 # XXX: 只测试前100条数据
-data = [data[0]]*100
+# data = [data[0]]*100
 print(f'{len(data)=}')
 # print(data)
 correct, total = 0, 0
 chat_format = ChatFormat(tokenizer)
 for item in data:
-    print('='*100)
-    print(item)
+    # print('='*100)
+    # print(item)
     diag = [
         Message(role='系统', content=''), 
         Message(role='用户', content=item['question'])
@@ -42,7 +42,7 @@ for item in data:
                                      temperature=0.5, top_k=10,
                                      stop_at_eos=True, eos_token_id=tokenizer.end_text_id)
     # print(f'{generated_sequence=}, {len(generated_sequence)=}')
-    print(f'{tokenizer.decode(generated_sequence, skip_all_special=False)=}')
+    # print(f'{tokenizer.decode(generated_sequence, skip_all_special=False)=}')
     try:
         decoded_dialog = chat_format.decode_dialog(generated_sequence)
         # print(f'{decoded_dialog=}')

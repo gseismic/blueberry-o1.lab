@@ -65,3 +65,26 @@
 **message["content"]='汉字`揞`的部首是`扌部`' != item["answer"]='汉字`歆`的部首是`欠部`'
 **message["content"]='汉字`痫`的部首是`疒部`' != item["answer"]='汉字`歆`的部首是`欠部`'
 ```
+
+使用2条数据DPO:
+训练数据: （思考： 可能应该加入存在偏好的loss）
+```
+{'question': '恙的部首是什么', 'answer': '恙的部首是`心部`'}
+tokenizer.decode(generated_sequence, skip_all_special=False)='<|text/|><|message/|><|role/|>系统<|/role|><|content/|><|/content|><|/message|><|message/|><|role/|>用户<|/role|><|content/|>恙的部首是什么<|/content|><|/message|><|role/|>助手<|/role|><|content/|>恙的部首是`心心心心心心心心心心之TǔNU`<|/content|><|/message|><|/text|>'
+**message["content"]='恙的部首是`心心心心心心心心心心之TǔNU`' != item["answer"]='恙的部首是`心部`'
+```
+测试数据： (依然答非所问，且没有泛化能力， 是否因为数据量过小？)
+```
+**message["content"]='孥的五笔编码是`VCBF`' != item["answer"]='郈的五笔编码是`rgkb`'
+**message["content"]='粉没有异体字' != item["answer"]='郈没有异体字'
+**message["content"]='汉字`唔`的拼音是`zhú`' != item["answer"]='汉字`郈`的拼音是`hòu`'
+**message["content"]='彭的拼音是`péng`' != item["answer"]='郈的拼音是`hòu`'
+**message["content"]='汉字`孥`的笔画数是`8笔`' != item["answer"]='汉字`郈`的笔画数是`8`'
+**message["content"]='纻的笔画数是`7`' != item["answer"]='郈的笔画数是`8`'
+**message["content"]='孥没有繁体字' != item["answer"]='郈没有繁体字'
+**message["content"]='孥的结构是`上下结构`' != item["answer"]='郈的结构未知'
+**message["content"]='彭的造字法未知' != item["answer"]='郈的造字法未知'
+**message["content"]='汉字`luó`的部首是`' != item["answer"]='汉字`杞`的部首是`木部`'
+**message["content"]='笥的部首是`竹部`' != item["answer"]='杞的部首是`木部`'
+**message["content"]='汉字`骥`的五笔编码是`CUXWF`' != item["answer"]='汉字`杞`的五笔编码是`SNN`'
+```
