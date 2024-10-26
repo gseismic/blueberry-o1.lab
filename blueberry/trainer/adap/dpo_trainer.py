@@ -22,7 +22,12 @@ class DPOTrainer:
     def set_data_loader(self, data_loader):
         self.data_loader = data_loader
     
-    def train_batch(self, gpt, gpt_ref, optimizer, batch, grad_clip, beta=1.0):
+    def train_batch(self, gpt, gpt_ref, optimizer, batch, grad_clip, alpha=1.0, beta=0.1):
+        """
+        Args:
+            alpha: 偏好损失的权重
+            beta: DPO 损失中的 beta 参数, KL(ref-model || target-model) 的权重
+        """
         (
             (chosen_input_seq, chosen_target_seq, chosen_finetune_mask), 
             (rejected_input_seq, rejected_target_seq, rejected_finetune_mask), 
@@ -50,37 +55,22 @@ class DPOTrainer:
 
         # 计算偏好分数： shape: (batch_size, seq_len, vocab_size)
         # p(y|x) 的 mask 是 shared_finetune_mask，只关注y——微调数据
-        # print(f'{log_ratio_chosen.shape=}, {log_ratio_rejected.shape=}, {shared_finetune_mask.shape=}')
         preference_score = beta * (log_ratio_chosen - log_ratio_rejected) # * shared_finetune_mask
         # 计算损失： shape: (batch_size, seq_len, vocab_size)
-        # print(f'{preference_score.shape=}')
-        # raise
         # preference_score 的形状: (batch_size, seq_len, vocab_size)
         # shared_finetune_mask 的形状: (batch_size, seq_len)
-        loss = -torch.log(torch.sigmoid(preference_score)).mean(dim=-1)
-        # print(f'{loss=}, {loss.shape=}, {loss.sum()=}')
-        loss = torch.sum(loss * shared_finetune_mask) / torch.sum(shared_finetune_mask)
-        # print(f'{shared_finetune_mask=}, {shared_finetune_mask.shape=}, {shared_finetune_mask.sum()=}')
-        # print(f'{loss=}, {loss.shape=}, {loss.sum()=}')
-        # raise
-        # loss 的 shape: (batch_size)
-        
-        # 计算损失并使用 .reshape()
-        # loss = criterion(output.reshape(-1, gpt.vocab_size), target_seq.reshape(-1))
-        # if mask_seq is None:
-        #     loss = loss.mean() 
-        # else:
-        #     # 微调损失和预训练损失的mask
-        #     assert len(mask_seq) == 2
-        #     finetune_mask, pretrain_mask = mask_seq
-        #     alpha = 0.6
-        #     mask_seq = alpha * finetune_mask + (1 - alpha) * pretrain_mask
-        #     mask_seq = mask_seq.to(self.device)
-        #     mask_seq = mask_seq.view(-1)
-        #     # XXX 可考虑梯度累加
-        #     # print(f'{mask_seq=}, len(mask_seq)={len(mask_seq)}')
-        #     # print(f'{loss=}, len(loss)={len(loss)}')
-        #     loss = torch.sum(loss * mask_seq) / torch.sum(mask_seq)
+        reward_loss = -torch.log(torch.sigmoid(preference_score)).mean(dim=-1)
+        reward_loss = torch.sum(reward_loss * shared_finetune_mask) / torch.sum(shared_finetune_mask)
+
+        # chosen loss: 使得chosen的输出接近chosen_target_seq，使得存在这个生成路径
+        criterion = nn.CrossEntropyLoss(reduction='none')
+        chosen_loss = criterion(chosen_logits.reshape(-1, chosen_logits.size(-1)), chosen_target_seq.reshape(-1))
+        chosen_mask = chosen_finetune_mask.view(-1)
+        chosen_loss = torch.sum(chosen_loss * chosen_mask) / torch.sum(chosen_mask)
+
+        loss = reward_loss + chosen_loss * alpha
+        # print(f'{reward_loss=}, {chosen_loss=}')
+
         optimizer.zero_grad()
         loss.backward()
         if grad_clip is not None:

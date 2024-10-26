@@ -22,7 +22,7 @@ def get_data():
 
 data = get_data()[:100]
 # XXX: 只测试前100条数据
-# data = [data[0]]*100
+data = [data[0]]*100
 print(f'{len(data)=}')
 # print(data)
 correct, total = 0, 0
@@ -39,7 +39,7 @@ for item in data:
     max_generate_len = settings.dpo_eval_config['max_generate_len']
     generated_sequence = gpt.generate(start_tokens, 
                                      max_gen_len=max_generate_len,
-                                     temperature=0.5, top_k=10,
+                                     temperature=0.9, top_k=10,
                                      stop_at_eos=True, eos_token_id=tokenizer.end_text_id)
     # print(f'{generated_sequence=}, {len(generated_sequence)=}')
     # print(f'{tokenizer.decode(generated_sequence, skip_all_special=False)=}')

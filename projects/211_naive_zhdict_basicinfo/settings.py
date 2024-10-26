@@ -102,18 +102,19 @@ dpo_checkpoint_dir = 'models/checkpoint_dpo'
 dpo_config = {
     'seed': 36,
     'beta': 0.1,
-    'batch_size': 32,
-    'max_epochs': 200,
-    'lr': 1e-5, #  when finetunning: make smaller 
-    'warmup_epochs': 50,
+    'batch_size': 16,
+    'max_epochs': 100,
+    'lr': 1e-4, #  when finetunning: make smaller 
+    'warmup_epochs': 2,
     'grad_clip': 1,
     'target_loss_ratio': 0.001,
     'target_loss': 0.001,
     'verbose_freq': 10,
     'batch_verbose_freq': 10,
-    'checkpoint_freq': 10,
+    'checkpoint_freq': 1,
 }
 
+dpo_eval_model_file = 'models/checkpoint_dpo/chkpt_19.pth'
 # dpo_eval_data_file = '../../datasets/zhdict/basic_full_dpo_eval.txt'
 dpo_eval_data_file = '../../datasets/zhdict/basic_full_qa_eval.txt'
 dpo_eval_text_sep = '|||\n\n'
