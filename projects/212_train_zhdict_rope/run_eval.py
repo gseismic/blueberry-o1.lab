@@ -1,5 +1,5 @@
 from blueberry.model.gpt.naive import GPT
-from main.tokenizer import Tokenizer
+from blueberry.tokenizer.naive import Tokenizer
 import settings
 
 
