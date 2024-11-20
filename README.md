@@ -2,9 +2,13 @@
 code-NOT-ready, drafts
 【未完成】
 
+
 ## 项目目标
+strawberry-o1: AGI from 0(zero) to 1(O1)
+
 openai发布o1模型之后，自己也有一些复现o1的思路，决定尝试复现。
 因为算力和数据局限，虽然第一步就遭遇挫折，我还是决定把自己的思考写在这里，供大家批评和讨论。
+（后续可能会有更新）
 
 传统LLM训练主要分两步：【预训练】和【微调】（含RLHF,DPO等）。
 
@@ -67,22 +71,24 @@ token级强化学习的例子：
 一个完整【一步】是：
  【proposer提议step】【critic质证必要性】【judge判断改步骤是否有必要进行，过程是否终止】
 具体训练，也使用强化学习训练。
+```xml
 <system/>...</system><user/>...</user>
     <不可见的think>/><step_proposal/>..</step_proposal><step_critic/>..</step_critic><judge/>..</judge>..<terminated/truncated></</think>
     <可见的output/></output>
+```
+还有有很多中其它设计，上面只是一个简单例子。
 
 因算力、数据和个人精力问题，这部分一直没有实施。
 
-
 ## 代码部分参考资料
-[naive代码来自chatgpt_3k.py] chatgpt_3k.py
-[llama3](https://github.com/meta/llama)
-[nanogpt](https://github.com/karpathy/nanoGPT)
-[minimind](https://github.com/jingyaogong/minimind/blob/master/model/model.py)
-[modded-nanogpt](https://github.com/KellerJordan/modded-nanogpt/blob/master/train_gpt2.py)
+- naive chatgpt_3k.py
+- [llama3](https://github.com/meta/llama)
+- [nanogpt](https://github.com/karpathy/nanoGPT)
+- [minimind](https://github.com/jingyaogong/minimind/blob/master/model/model.py)
+- [modded-nanogpt](https://github.com/KellerJordan/modded-nanogpt/blob/master/train_gpt2.py)
 
 ## 相关论文
-（来自某github仓库, TODO: 添加链接）
+（来自 https://github.com/hijkzzz/Awesome-LLM-Strawberry)
 
 [Scaling Laws and Compute-Optimal Training Beyond Fixed Training Durations](https://arxiv.org/pdf/2405.18392)
 
